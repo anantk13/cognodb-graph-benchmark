@@ -128,16 +128,21 @@ def memory_sweep(series: dict[str, list[tuple[str, float | None]]], out: Path) -
             xs, ys, marker="o", markersize=8, linewidth=2,
             color=_colour(target_id), label=target_id, zorder=3,
         )  # fmt: skip
+    # DNF markers are placed after every line is drawn, in axes coordinates.
+    # Reading get_ylim() mid-loop put them at whatever the limit happened to be
+    # at that moment, which is arbitrary and moves as later series are added.
+    for target_id, points in series.items():
         for i, (_, value) in enumerate(points):
             if value is None:
                 ax.annotate(
                     "DNF",
-                    (i, ax.get_ylim()[0]),
+                    (i, 0.02),
+                    xycoords=ax.get_xaxis_transform(),
                     ha="center",
                     va="bottom",
-                    fontsize=8,
+                    fontsize=9,
                     color=_colour(target_id),
-                    fontweight="600",
+                    fontweight="700",
                 )
 
     ax.set_xticks(range(len(tiers)))
@@ -196,23 +201,24 @@ def network_split(rows: list[tuple[str, float, float]], out: Path) -> Path:
     surface gap separates the segments so the boundary is readable without
     relying on the two fills contrasting.
     """
-    fig, ax = plt.subplots(figsize=(8, 3.4))
     labels = [label for label, _, _ in rows]
     server = [s for _, s, _ in rows]
     network = [n for _, _, n in rows]
     ys = range(len(rows))
+    widest = max(s + n for s, n in zip(server, network, strict=True))
 
-    ax.barh(ys, server, color="#2a78d6", label="server execution", zorder=3, height=0.55)
+    fig, ax = plt.subplots(figsize=(11, 1.9 + 0.55 * len(rows)))
+    ax.barh(ys, server, color="#2a78d6", label="server execution", zorder=3, height=0.42)
     ax.barh(
         ys, network, left=server, color="#c9c8c2", label="network + driver",
-        zorder=3, height=0.55, edgecolor=SURFACE, linewidth=2,
+        zorder=3, height=0.42, edgecolor=SURFACE, linewidth=2,
     )  # fmt: skip
 
     for i, (s, n) in enumerate(zip(server, network, strict=True)):
         ax.annotate(
-            f"{s:.0f} ms server  ·  {n:.0f} ms network  ({100*n/(s+n):.0f}% network)",
+            f"{s:.0f} ms server · {n:.0f} ms network · {100 * n / (s + n):.0f}% network",
             (s + n, i),
-            xytext=(8, 0),
+            xytext=(10, 0),
             textcoords="offset points",
             va="center",
             fontsize=9,
@@ -221,10 +227,20 @@ def network_split(rows: list[tuple[str, float, float]], out: Path) -> Path:
 
     ax.set_yticks(list(ys))
     ax.set_yticklabels(labels)
-    ax.set_xlim(0, max(s + n for s, n in zip(server, network, strict=True)) * 1.7)
+    # Headroom for the annotation, which is long by design -- the point of this
+    # chart is the sentence beside the bar, not the bar.
+    ax.set_xlim(0, widest * 2.15)
+    # Keep the rows close together; the default margins leave two bars marooned
+    # at opposite ends of the figure.
+    ax.set_ylim(-0.6, len(rows) - 0.4)
     _style(ax, xlabel="milliseconds", title="Where the time actually goes (point lookup)")
     ax.grid(axis="y", visible=False)
-    ax.legend(frameon=False, fontsize=9, labelcolor=INK_MUTED, loc="lower right")
+    # Below the axis. Inside the plot it covered the bottom row's annotation;
+    # above it, it covered the title.
+    ax.legend(
+        frameon=False, fontsize=9, labelcolor=INK_MUTED, ncols=2,
+        loc="upper left", bbox_to_anchor=(0, -0.22),
+    )  # fmt: skip
     fig.tight_layout()
     fig.savefig(out, dpi=160)
     plt.close(fig)
