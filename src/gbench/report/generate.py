@@ -332,14 +332,29 @@ def render_charts(records: list[Record], out_dir: Path) -> list[Path]:
 
     # Memory sweep: p50 of the three-hop traversal against the cap. A tier the
     # engine could not start at is a gap labelled DNF.
-    sweep: dict[str, list[tuple[str, float | None]]] = {}
-    tiers = sorted({r.tier for r in records if r.tier}, key=lambda t: ("512" in t, "1g" in t))
+    # Tiers are ordered by the size they denote, not lexically and not by the
+    # order results happened to be written. Both of those put 512m after 2g,
+    # and because the plotted points came from file order while the axis labels
+    # came from a separate sort, the DNF marker landed under the wrong tier.
+    def tier_bytes(tier: str) -> int:
+        value = tier.strip().lower()
+        return int(value[:-1]) * (1 << 30 if value.endswith("g") else 1 << 20)
+
+    tiers = sorted({r.tier for r in records if r.tier}, key=tier_bytes)
+    by_target: dict[str, dict[str, float | None]] = {}
     for record in records:
         if not record.tier:
             continue
         entry = record.workload("hop3") if not record.dnf else None
         value = (entry or {}).get("client", {}).get("p50_ms") if entry else None
-        sweep.setdefault(record.target_id, []).append((record.tier, value))
+        by_target.setdefault(record.target_id, {})[record.tier] = value
+
+    # One point per tier per target, in tier order, so the x positions the
+    # DNF markers are drawn at match the ones the lines are drawn at.
+    sweep: dict[str, list[tuple[str, float | None]]] = {
+        target: [(tier, values.get(tier)) for tier in tiers]
+        for target, values in by_target.items()
+    }
     if sweep and len(tiers) > 1:
         written.append(charts.memory_sweep(sweep, charts_dir / "memory-sweep.png"))
 
