@@ -90,6 +90,20 @@ indexed seek on four engines and a scan on this one. That is a real property of
 the engine, not a harness defect, but it means that row is not a like-for-like
 comparison.
 
+### Kuzu's concurrency numbers are a harness artefact, not a Kuzu property
+
+Measured: 64.0, 63.9 and 63.9 sustained q/s at 1, 10 and 40 clients, with p50
+latency rising 1.17 -> 109 -> 361 ms. Throughput is perfectly flat while
+latency grows linearly with client count, which is the signature of complete
+serialisation.
+
+Kuzu runs in-process inside the Python benchmark client, so its queries
+contend for the GIL in a way no client-server target does; the other four talk
+to a separate process over a socket. Whether Kuzu itself would parallelise
+under a client that could actually issue concurrent work is **not established
+here**, and no conclusion about Kuzu's concurrency should be drawn from this
+row. It is reported because omitting it would be worse.
+
 ### At 40 clients, FalkorDB rejects and the others queue
 
 Measured: FalkorDB completes 21,683 operations and rejects 1,538 (6.6%) with
