@@ -24,6 +24,11 @@ def main(argv: list[str] | None = None) -> int:
     bench.add_argument("--arm", choices=("capped", "managed", "all"), default="all")
     bench.add_argument("--quick", action="store_true", help="reduced iterations; not publishable")
     bench.add_argument("--run-dir", type=Path, default=None)
+    bench.add_argument(
+        "--only",
+        default=None,
+        help="comma-separated target ids; re-measure a subset into an existing run dir",
+    )
 
     sub.add_parser("report", help="regenerate tables and charts from raw results")
 
@@ -53,13 +58,15 @@ def main(argv: list[str] | None = None) -> int:
     build_dir = ROOT / "data" / "build"
     print(f"writing to {out_dir}")
 
+    only = {t.strip() for t in args.only.split(",")} if args.only else None
+
     if args.arm in ("managed", "all"):
         print("\n== arm B: managed free tiers ==")
-        run_managed_arm(config, out_dir, build_dir=build_dir, quick=args.quick)
+        run_managed_arm(config, out_dir, build_dir=build_dir, quick=args.quick, only=only)
 
     if args.arm in ("capped", "all"):
         print("\n== arm A: identical cgroup limits ==")
-        run_capped_arm(config, out_dir, build_dir=build_dir, quick=args.quick)
+        run_capped_arm(config, out_dir, build_dir=build_dir, quick=args.quick, only=only)
 
     print(f"\ndone. raw results in {out_dir}")
     return 0

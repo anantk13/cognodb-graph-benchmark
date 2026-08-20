@@ -55,10 +55,17 @@ def build_adapter(target: cfg.Target, *, host_port: int = HOST_PORT) -> Adapter:
             supports_auth=target.id != "memgraph",
         )
     if target.adapter == "falkordb":
+        # In the capped arm the container publishes on the host port the
+        # orchestrator chose, not on the engine's default. Reading the port
+        # from the environment instead -- which is what this did first -- sends
+        # the client to 6379 while the container listens on 7699, and the
+        # target fails with a connection refusal that looks like the engine
+        # never started.
+        port = host_port if target.arm == "capped" else int(creds.get("port", host_port))
         return FalkorAdapter(
             name=target.id,
             host=creds.get("host", "localhost"),
-            port=int(creds.get("port", host_port)),
+            port=port,
             dialect=target.dialect,
         )
     if target.adapter == "kuzu":
@@ -171,15 +178,27 @@ def measure_target(
 
 
 def run_capped_arm(
-    config: cfg.Config, out_dir: Path, *, build_dir: Path, quick: bool = False
+    config: cfg.Config,
+    out_dir: Path,
+    *,
+    build_dir: Path,
+    quick: bool = False,
+    only: set[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Sweep every containerised engine across every memory tier."""
+    """Sweep every containerised engine across every memory tier.
+
+    `only` restricts the run to named targets, so a single target that failed
+    can be re-measured into an existing run directory without repeating the
+    ones that succeeded.
+    """
     records: list[dict[str, Any]] = []
 
     for tier in config.tiers:
         for target in config.by_arm("capped"):
             if target.image is None:
                 continue  # embedded targets are handled after the tier sweep
+            if only and target.id not in only:
+                continue
 
             command = containers.build_command(
                 target_id=target.id,
@@ -240,7 +259,7 @@ def run_capped_arm(
     # server, which is a different measurement and would not be comparable with
     # the containerised rows. It is measured once and reported in its own table.
     for target in config.by_arm("capped"):
-        if target.image is not None:
+        if target.image is not None or (only and target.id not in only):
             continue
         print(f"  {target.id}: embedded, no container")
         adapter = build_adapter(target)
@@ -260,11 +279,18 @@ def run_capped_arm(
 
 
 def run_managed_arm(
-    config: cfg.Config, out_dir: Path, *, build_dir: Path, quick: bool = False
+    config: cfg.Config,
+    out_dir: Path,
+    *,
+    build_dir: Path,
+    quick: bool = False,
+    only: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Measure the managed free tiers as shipped."""
     records: list[dict[str, Any]] = []
     for target in config.by_arm("managed"):
+        if only and target.id not in only:
+            continue
         print(f"  {target.id}: connecting")
         adapter = build_adapter(target)
         record: dict[str, Any] = {}
