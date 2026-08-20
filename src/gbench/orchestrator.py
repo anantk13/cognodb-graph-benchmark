@@ -176,31 +176,10 @@ def run_capped_arm(
     """Sweep every containerised engine across every memory tier."""
     records: list[dict[str, Any]] = []
 
-    # Embedded targets first: no container, no tier sweep. Kuzu runs in-process,
-    # so a cgroup memory limit would cap the benchmark client rather than a
-    # server, which is a different measurement and would not be comparable with
-    # the containerised rows. It is measured once and reported in its own table.
-    for target in config.by_arm("capped"):
-        if target.image is not None:
-            continue
-        print(f"  {target.id}: embedded, no container")
-        adapter = build_adapter(target)
-        record: dict[str, Any] = {"embedded": True}
-        try:
-            with adapter:
-                record |= measure_target(adapter, target, config, build_dir=build_dir, quick=quick)
-            print(f"  {target.id}: done")
-        except Exception as exc:  # noqa: BLE001 - a failed target is reported
-            record["target"] = target.redacted()
-            record["error"] = f"{type(exc).__name__}: {exc}"[:1000]
-            print(f"  {target.id}: FAILED {exc}")
-        records.append(record)
-        _write(out_dir / "capped" / f"{target.id}.json", record)
-
     for tier in config.tiers:
         for target in config.by_arm("capped"):
             if target.image is None:
-                continue  # handled above
+                continue  # embedded targets are handled after the tier sweep
 
             command = containers.build_command(
                 target_id=target.id,
@@ -251,6 +230,31 @@ def run_capped_arm(
 
             records.append(record)
             _write(out_dir / "capped" / f"{target.id}@{tier.id}.json", record)
+
+
+    # Embedded targets last, after every containerised target has reported.
+    # Kuzu's ingest is the slowest single step in this arm by two orders of
+    # magnitude, so running it first would delay feedback on everything else.
+    # No container and no tier sweep: Kuzu runs in-process,
+    # so a cgroup memory limit would cap the benchmark client rather than a
+    # server, which is a different measurement and would not be comparable with
+    # the containerised rows. It is measured once and reported in its own table.
+    for target in config.by_arm("capped"):
+        if target.image is not None:
+            continue
+        print(f"  {target.id}: embedded, no container")
+        adapter = build_adapter(target)
+        record: dict[str, Any] = {"embedded": True}
+        try:
+            with adapter:
+                record |= measure_target(adapter, target, config, build_dir=build_dir, quick=quick)
+            print(f"  {target.id}: done")
+        except Exception as exc:  # noqa: BLE001 - a failed target is reported
+            record["target"] = target.redacted()
+            record["error"] = f"{type(exc).__name__}: {exc}"[:1000]
+            print(f"  {target.id}: FAILED {exc}")
+        records.append(record)
+        _write(out_dir / "capped" / f"{target.id}.json", record)
 
     return records
 
