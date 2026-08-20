@@ -51,6 +51,7 @@ class KuzuAdapter(Adapter):
         self._path = Path(path)
         self._db: kuzu.Database | None = None
         self._conn: kuzu.Connection | None = None
+        self._indexes: list[tuple[str, str]] = []
 
     # ── lifecycle ──────────────────────────────────────────────────────────
 
@@ -77,18 +78,34 @@ class KuzuAdapter(Adapter):
     # ── schema ─────────────────────────────────────────────────────────────
 
     def create_schema(self, indexes: list[tuple[str, str]]) -> None:
-        """Declare node and relationship tables.
+        """Record the index intent. Kuzu's tables are declared at load time.
 
-        `indexes` is accepted for interface parity but is largely advisory
-        here: Kuzu indexes a node table's primary key automatically and offers
-        no secondary index for `Entity.jurisdiction`. That asymmetry is real
-        and is stated in the README rather than papered over -- the filtered
-        lookup is an indexed seek on four engines and a scan on this one, which
-        is a property of the engine and part of what the comparison shows.
+        Kuzu is a declared-schema engine: node and relationship tables have to
+        exist before any row can be inserted, and both are derived from the
+        data itself in `load`. Deriving them here instead was the first attempt
+        and it was wrong -- the label set was taken from `indexes`, so
+        `Intermediary`, which is present in the graph but is not an indexed
+        label, never got a table and the load failed with
+        "Table Intermediary does not exist".
+
+        `indexes` is otherwise advisory here. Kuzu indexes a node table's
+        primary key automatically and offers no secondary index for
+        `Entity.jurisdiction`, so the filtered lookup is an indexed seek on the
+        other four engines and a scan on this one. That asymmetry is a real
+        property of the engine and is stated in the results rather than papered
+        over.
         """
-        labels = sorted({label for label, _ in indexes} | {"Entity", "Officer", "Address"})
+        self._indexes = list(indexes)
+
+    def _declare_nodes(self, nodes_csv: str) -> None:
+        """Create one node table per label actually present in the data."""
+        labels: set[str] = set()
+        with open(nodes_csv, newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                labels.add(row["label"])
+
         columns = ", ".join(f"{c} STRING" for c in NODE_COLUMNS)
-        for label in labels:
+        for label in sorted(labels):
             self.conn.execute(
                 f"CREATE NODE TABLE IF NOT EXISTS {label}"
                 f"(node_id STRING, {columns}, PRIMARY KEY(node_id))"
@@ -107,8 +124,18 @@ class KuzuAdapter(Adapter):
             by_type.setdefault(rel_type, []).append((start, end))
 
         for rel_type, pairs in by_type.items():
-            spec = ", ".join(f"FROM {s} TO {e}" for s, e in sorted(set(pairs)))
-            self.conn.execute(f"CREATE REL TABLE IF NOT EXISTS {rel_type}({spec})")
+            unique = sorted(set(pairs))
+            spec = ", ".join(f"FROM {s} TO {e}" for s, e in unique)
+
+            # Kuzu 0.7.1 rejects several FROM/TO pairs in one CREATE REL TABLE;
+            # the construct for that is CREATE REL TABLE GROUP. Verified on this
+            # version: a group is traversable by its own name, so
+            # `-[:REGISTERED_ADDRESS]->` resolves across all of its pairs and
+            # the query text stays byte-identical to the other four dialects.
+            # Without the group, each pair would need its own table with a
+            # compound name, and Kuzu's queries would have to be rewritten.
+            keyword = "REL TABLE GROUP" if len(unique) > 1 else "REL TABLE"
+            self.conn.execute(f"CREATE {keyword} IF NOT EXISTS {rel_type}({spec})")
 
     # ── measurement ────────────────────────────────────────────────────────
 
@@ -137,6 +164,7 @@ class KuzuAdapter(Adapter):
         are not: the managed targets have no equivalent, so an ingest column
         mixing four mechanisms would compare nothing.
         """
+        self._declare_nodes(nodes_csv)
         self.declare_relationships(_relationship_combinations(rels_csv))
         started = time.perf_counter()
 
