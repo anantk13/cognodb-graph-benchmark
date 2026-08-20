@@ -10,6 +10,20 @@ graph exceeds that easily. Without a uniform LIMIT, one target would silently
 truncate where the others did not, and the comparison would be measuring the
 cap rather than the engine. `RESULT_LIMIT` is applied identically everywhere.
 
+**No traversal uses DISTINCT.** This is not a stylistic choice. Measured on
+this dataset, the three-hop query written as `RETURN DISTINCT … LIMIT 1000`
+returns 1000 rows on Neo4j and FalkorDB and **184 on Kuzu** -- because Kuzu
+pushes the limit below the deduplication, taking 1000 of the 6,678 paths and
+then deduplicating those to 184, where the others deduplicate 6,678 down to
+1,182 and then take 1000. Rewriting it as `WITH DISTINCT … RETURN … LIMIT`
+does not help; the optimiser pushes the limit past the explicit barrier too.
+
+Byte-identical query text is therefore *necessary but not sufficient* for the
+same logical query. Without DISTINCT every engine returns exactly
+`min(paths, LIMIT)` and the workload is unambiguous, so that is what these
+traversals do -- they count paths rather than distinct endpoints. Only the
+row-count cross-check made the divergence visible at all.
+
 **Start nodes are drawn from nodes that actually have edges.** Two thirds of
 this graph's nodes are Addresses and Officers with a single relationship;
 drawing start nodes uniformly at random would make most traversals return
@@ -218,7 +232,7 @@ def build_registry(pools: dict[str, list[str]]) -> Registry:
             variants=_same(
                 "MATCH (o:Officer {node_id: $id})-[:OFFICER_OF]->(:Entity)"
                 "<-[:OFFICER_OF]-(other:Officer) "
-                f"RETURN DISTINCT other.node_id AS id LIMIT {RESULT_LIMIT}"
+                f"RETURN other.node_id AS id LIMIT {RESULT_LIMIT}"
             ),
             params=lambda rng: {"id": rng.choice(traversers)},
         )
@@ -235,7 +249,7 @@ def build_registry(pools: dict[str, list[str]]) -> Registry:
             variants=_same(
                 "MATCH (o:Officer {node_id: $id})-[:OFFICER_OF]->(:Entity)"
                 "<-[:OFFICER_OF]-(:Officer)-[:OFFICER_OF]->(e2:Entity) "
-                f"RETURN DISTINCT e2.node_id AS id LIMIT {RESULT_LIMIT}"
+                f"RETURN e2.node_id AS id LIMIT {RESULT_LIMIT}"
             ),
             params=lambda rng: {"id": rng.choice(traversers)},
             notes=(

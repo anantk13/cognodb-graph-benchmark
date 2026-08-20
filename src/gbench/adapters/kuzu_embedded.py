@@ -107,8 +107,14 @@ class KuzuAdapter(Adapter):
         columns = ", ".join(f"{c} STRING" for c in NODE_COLUMNS)
         for label in sorted(labels):
             self.conn.execute(
+                # `bench_seq` is declared here although no row carries it at
+                # load time. Kuzu is schema-first: SET on an undeclared
+                # property fails with "Cannot find property", where the four
+                # schema-free engines simply create it. Declaring it is the
+                # minimum needed for the write workload to run at all, and the
+                # asymmetry is recorded in the results rather than hidden.
                 f"CREATE NODE TABLE IF NOT EXISTS {label}"
-                f"(node_id STRING, {columns}, PRIMARY KEY(node_id))"
+                f"(node_id STRING, {columns}, bench_seq INT64, PRIMARY KEY(node_id))"
             )
 
     def declare_relationships(self, combinations: list[tuple[str, str, str]]) -> None:
