@@ -122,8 +122,10 @@ def measure_target(
         },
     }
 
-    floor = measure_round_trip_floor(adapter, iterations=100 if not quick else 50)
-    record["round_trip_floor"] = floor.as_dict() if floor else None
+    # Measured cold, before any data or schema exists. Reported separately as
+    # a cold-start figure; it is NOT the floor.
+    cold = measure_round_trip_floor(adapter, iterations=100 if not quick else 50)
+    record["round_trip_floor_cold"] = cold.as_dict() if cold else None
 
     adapter.create_schema(registry.indexes)
 
@@ -138,6 +140,15 @@ def measure_target(
         "batch_size": load.batch_size,
         "method": load.method,
     }
+
+    # The floor proper: measured after the load, in the same warm state the
+    # workloads are about to run in. Taking it before the load -- which this
+    # did first -- produced a "floor" of 1.87 ms on a target whose point
+    # lookup then measured 0.85 ms, because the engine was cold when the floor
+    # was taken and warm by the time the workloads ran. A lower bound that
+    # exceeds the thing it bounds is not a lower bound.
+    floor = measure_round_trip_floor(adapter, iterations=100 if not quick else 50)
+    record["round_trip_floor"] = floor.as_dict() if floor else None
 
     record["workloads"] = [
         run_workload(adapter, workload, run_cfg).as_dict() for workload in registry.workloads
@@ -235,6 +246,11 @@ def run_capped_arm(
                 continue
 
             adapter = build_adapter(target)
+            # Recorded before the attempt: if measure_target raises, the record
+            # still has to say which target it is. Without this the report
+            # falls back to the filename and renders "falkordb@512m @ 512m"
+            # with an unknown arm and dialect.
+            record["target"] = target.redacted()
             try:
                 with adapter:
                     record |= measure_target(

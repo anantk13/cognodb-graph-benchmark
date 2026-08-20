@@ -209,6 +209,38 @@ def table_concurrency(records: list[Record]) -> str:
     return "\n".join(lines) if len(lines) > 2 else "_No concurrency data in this run._"
 
 
+def table_cold_start(records: list[Record]) -> str:
+    """Cold versus warm round trip, reported separately.
+
+    The cold figure is a trivial query issued against a freshly started engine
+    holding no data; the warm one is the same query after the graph is loaded.
+    Reported apart rather than averaged, because a benchmark that folds
+    cold-start into steady-state numbers is measuring startup and calling it
+    throughput -- one published comparison recorded 400 ms on a first run and
+    77 ms on the second and reported the first.
+    """
+    lines = [
+        "| Target | Cold p50 | Cold p95 | Warm p50 | Warm p95 | Cold/warm ratio |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    any_row = False
+    for record in records:
+        if record.dnf or record.errored:
+            continue
+        cold = record.data.get("round_trip_floor_cold")
+        warm = record.data.get("round_trip_floor")
+        if not cold or not warm:
+            continue
+        any_row = True
+        ratio = cold["p50_ms"] / warm["p50_ms"] if warm["p50_ms"] else float("nan")
+        lines.append(
+            f"| `{record.label}` | {_fmt(cold['p50_ms'], 'ms')} | {_fmt(cold['p95_ms'], 'ms')} "
+            f"| {_fmt(warm['p50_ms'], 'ms')} | {_fmt(warm['p95_ms'], 'ms')} "
+            f"| {ratio:,.2f}x |"
+        )
+    return "\n".join(lines) if any_row else "_No cold-start data in this run._"
+
+
 def table_footprint(records: list[Record]) -> str:
     """Resource usage where observable, and an explicit note where not."""
     lines = [
@@ -324,6 +356,11 @@ def render_charts(records: list[Record], out_dir: Path) -> list[Path]:
     # meaningful for targets that report their own execution time.
     split = []
     for record in live:
+        # Managed targets only. In the capped arm the "network" component is
+        # loopback plus driver overhead, and labelling that as network in a
+        # chart about network cost would be actively misleading.
+        if (record.data.get("target") or {}).get("arm") != "managed":
+            continue
         entry = record.workload("point_lookup")
         if not entry or not entry.get("server") or not entry.get("client"):
             continue
@@ -375,6 +412,11 @@ def generate(raw_dir: Path, out_dir: Path) -> Path:
     sections += [
         "\n## Mixed workload -- sustained throughput\n",
         table_concurrency(records),
+        "\n## Cold start versus steady state\n",
+        "_A trivial round trip against a freshly started engine holding no data, "
+        "against the same round trip once the graph is loaded. Reported separately, "
+        "never averaged together._\n",
+        table_cold_start(records),
         "\n## Footprint\n",
         table_footprint(records),
         "\n## Failures and did-not-finish\n",
