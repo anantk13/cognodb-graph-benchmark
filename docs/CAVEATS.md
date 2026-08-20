@@ -90,6 +90,34 @@ indexed seek on four engines and a scan on this one. That is a real property of
 the engine, not a harness defect, but it means that row is not a like-for-like
 comparison.
 
+### At 40 clients, FalkorDB rejects and the others queue
+
+Measured: FalkorDB completes 21,683 operations and rejects 1,538 (6.6%) with
+`Max pending queries exceeded`; Memgraph and Neo4j reject none. At 1 and 10
+clients FalkorDB rejects none either.
+
+This is a server-side bounded queue, not a client defect -- the error is
+FalkorDB's own response. It was left at its shipped default, consistent with
+how every other engine's configuration was treated apart from the memory
+budget.
+
+It changes how the throughput column should be read. FalkorDB's figure counts
+only the work it accepted; Memgraph's and Neo4j's count everything they made
+wait, with the latency growth to match. At 40 concurrent clients the row is
+comparing two overload strategies -- shed load, or queue it -- rather than
+comparing speed.
+
+### Memory is not the binding constraint in the capped arm
+
+Every engine is flat across 512 MB, 1 GB and 2 GB: FalkorDB's three-hop p50 is
+3.18 / 3.16 / 3.12 ms, Memgraph's 9.09 / 9.17 / 9.19 ms, Neo4j's 10.95 / 10.98
+ms. At this graph size, past the point where an engine can start at all, extra
+memory buys nothing -- the 0.5 vCPU cap is what binds.
+
+That limits what the sweep shows. It answers "can this engine run in CognoDB's
+envelope at all", which is a real question with a sharp answer for Neo4j, but
+it does not produce the degradation curve a larger dataset would.
+
 ## Defects found in this harness before publishing
 
 Listed because a benchmark that reports no bugs in its own design has probably
