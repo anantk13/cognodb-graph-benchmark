@@ -1,0 +1,10 @@
+engine	tier	status	seconds	exit_code	oom_killed	enforced_memory_max
+neo4j	512m	DNF	15	137	true	-
+memgraph	512m	DNF	10	137	true	-
+falkordb	512m	OK	5	-	false	536870912
+neo4j	1g	OK	10	-	false	1073741824
+memgraph	1g	OK	10	-	false	1073741824
+falkordb	1g	OK	0	-	false	1073741824
+neo4j	2g	OK	15	-	false	2147483648
+memgraph	2g	OK	15	-	false	2147483648
+falkordb	2g	OK	5	-	false	2147483648

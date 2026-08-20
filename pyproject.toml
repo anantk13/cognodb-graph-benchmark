@@ -1,0 +1,47 @@
+[project]
+name = "gbench"
+version = "0.1.0"
+description = "A resource-parity benchmark harness for managed and self-hosted graph databases"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Anant Kapoor" }]
+
+dependencies = [
+    # Bolt driver — drives CognoDB, Neo4j AuraDB, Neo4j Community and Memgraph.
+    # One driver across four targets keeps client-side overhead identical.
+    "neo4j==5.28.1",
+    # FalkorDB speaks RESP, not Bolt. Its Bolt support is documented as
+    # experimental, so the native client is the honest choice.
+    "falkordb==1.2.0",
+    # Kuzu is embedded — no server, no protocol.
+    "kuzu==0.7.1",
+    "pyyaml==6.0.2",
+    "python-dotenv==1.0.1",
+    "numpy==2.2.2",
+    "matplotlib==3.10.0",
+    "rich==13.9.4",
+]
+
+[project.scripts]
+gbench = "gbench.__main__:main"
+
+[dependency-groups]
+dev = ["pytest==8.3.4", "ruff==0.9.4"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gbench"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

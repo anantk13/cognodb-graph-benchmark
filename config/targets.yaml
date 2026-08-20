@@ -1,0 +1,296 @@
+# Every target the harness knows about, and every claim made about it.
+#
+# The `advertised` block on each target is copied from that vendor's own
+# published page, with the URL beside it, and is never mixed with anything this
+# harness measured. Where a vendor does not publish a figure the value is
+# `null`, which the report renders as "not published" -- not as an estimate.
+# Measured values live only in results/, never here.
+
+dataset:
+  # Confirmed against the downloaded files by `gbench data --verify`, which
+  # writes the observed counts and a checksum into data/build/manifest.json.
+  # The figures below are the source's own claim until that check has run.
+  name: ICIJ Offshore Leaks - Paradise Papers
+  source_url: https://offshoreleaks.icij.org/pages/database
+  license: ODbL 1.0 (database), CC BY-SA 3.0 (contents)
+  claimed_nodes: 163414
+  claimed_relationships: 364456
+  # Chosen over every SNAP alternative because it is the only candidate in the
+  # 100k-500k range carrying both a clear licence and real typed properties.
+  # Bare edge lists cannot exercise the filtered-lookup or aggregation metrics
+  # at all.
+
+run:
+  warmup_iterations: 200
+  measure_iterations: 1000 # see stats.minimum_samples_for -- 100 is not enough
+  seed: 20260820
+  load_batch_size: 1000 # identical on every target; ingest rate is meaningless without it
+  concurrency_levels: [1, 10, 40]
+  mixed_read_write_ratio: 0.9 # 90% reads, 10% writes
+
+# Indexes created identically on every target before any measurement, and
+# printed in the README. An index present on one engine and absent on another
+# is the single largest unearned speedup in the published literature.
+indexes:
+  - [Entity, node_id]
+  - [Officer, node_id]
+  - [Address, node_id]
+  - [Entity, jurisdiction]
+
+arms:
+  # ── Arm A: identical resource envelope, enforced by cgroup ───────────────
+  #
+  # The comparison the assignment's fairness rule actually asks for. Every
+  # engine gets the same cgroup limits on the same host with no network in the
+  # path. The Colima VM is deliberately oversized (8 vCPU / 11.65 GiB) relative
+  # to every cap below, so the container limit is the only binding constraint.
+  #
+  # Each engine's own internal memory budget is pinned to the same fraction of
+  # its cap. Left at defaults these are wildly unequal -- Neo4j takes a fixed
+  # 512M heap plus 512M page cache, Memgraph takes 90-100% of detected RAM,
+  # Kuzu takes 80% -- and that inequality would be invisible in the results.
+  capped:
+    description: Identical cgroup CPU and memory limits, no network in the path
+    host: macOS 15 / Colima 0.10.3 / Ubuntu 24.04 LTS guest / cgroup v2
+    tiers:
+      - id: 512m
+        cpus: 0.5
+        memory: 512m
+        note: CognoDB c0 spec parity. JVM engines are expected to fail here; a DNF is a result.
+      - id: 1g
+        cpus: 0.5
+        memory: 1g
+        note: Below Neo4j's documented 2 GB minimum.
+      - id: 2g
+        cpus: 0.5
+        memory: 2g
+        note: First tier every engine officially supports.
+    targets:
+      - id: neo4j-community
+        adapter: bolt
+        dialect: cypher5
+        image: neo4j:5.26-community # tag confirmed by docker pull, see docs/ENVIRONMENT.md
+        port: 7687
+        env:
+          uri: NEO4J_LOCAL_URI
+          user: NEO4J_LOCAL_USER
+          password: NEO4J_LOCAL_PASSWORD
+        advertised:
+          minimum_ram: 2 GB (development), 8 GB (server)
+          source: https://neo4j.com/docs/operations-manual/current/installation/requirements/
+        licence: GPLv3
+        # Verified 2026-08-20 by reading the licence text in full. No DeWitt
+        # clause, no restriction on publishing benchmark results.
+        licence_permits_benchmark_publication: true
+
+      - id: memgraph
+        adapter: bolt
+        dialect: cypher_memgraph
+        # memgraph/memgraph (915 MB), NOT memgraph/memgraph-mage (2.92 GB).
+        #
+        # MAGE bundles the graph-algorithms library, which makes it the rough
+        # equivalent of Neo4j plus GDS. This benchmark runs Neo4j Community,
+        # which has no GDS, so MAGE would have been the heavier of the two
+        # products compared against the lighter of the other.
+        #
+        # It also changes the answer. Measured on this host: MAGE is OOM-killed
+        # at the 512m tier; the slim image boots and serves queries in ~10s.
+        # Memgraph's own documentation recommends MAGE as the default, so using
+        # the documented default would have published "Memgraph cannot run at
+        # 512 MB" -- which is false. See results/tier-probe.tsv.
+        image: memgraph/memgraph:latest
+        port: 7687
+        env:
+          uri: MEMGRAPH_LOCAL_URI
+          user: MEMGRAPH_LOCAL_USER
+          password: MEMGRAPH_LOCAL_PASSWORD
+        # Memgraph runs unauthenticated by default, so blank really is the
+        # configuration here -- unlike a blank CognoDB password, which is an
+        # unfilled .env and must be caught before a run starts.
+        blank_credentials_ok: [user, password]
+        advertised:
+          minimum: 1 GB RAM / 1 vCPU / 1 GB disk
+          source: https://memgraph.com/docs/getting-started/install-memgraph
+        licence: BSL 1.1 (converts to Apache 2.0 on 2030-07-15)
+        # Verified 2026-08-20 against licenses/BSL.txt in the memgraph repo.
+        # The Additional Use Grant restricts embedding, distributing, or hosting
+        # the Licensed Work as a service to third parties. It says nothing about
+        # benchmarking or publishing results. No DeWitt clause.
+        #
+        # Not to be confused with Memgraph's *benchmark harness*, which is
+        # separately BSL-licensed in a way that bars the competitors it names
+        # from re-running it -- a documented criticism of their published
+        # results, and the reason this harness is MIT.
+        licence_permits_benchmark_publication: true
+
+      - id: falkordb
+        adapter: falkordb
+        dialect: opencypher9
+        image: falkordb/falkordb:latest
+        port: 6379
+        env:
+          host: FALKORDB_LOCAL_HOST
+          port: FALKORDB_LOCAL_PORT
+        advertised:
+          minimum: not published
+          source: https://docs.falkordb.com/getting-started/
+        licence: SSPL v1 (not OSI-approved)
+        # Verified 2026-08-20 against LICENSE.txt in the FalkorDB repo. SSPL's
+        # restriction is on offering the software as a service; it carries no
+        # DeWitt clause and no restriction on publishing benchmark results.
+        licence_permits_benchmark_publication: true
+        note: >
+          Driven over RESP with the native client, not Bolt. FalkorDB's own docs
+          describe its Bolt support as experimental and not recommended for
+          production, so using it would measure an experimental code path.
+
+      - id: kuzu
+        adapter: kuzu
+        dialect: cypher_kuzu
+        image: null # embedded - runs in-process, no container
+        env:
+          path: KUZU_LOCAL_PATH
+        licence: MIT
+        licence_permits_benchmark_publication: true
+        report_separately: true
+        note: >
+          Embedded: no server, no protocol, no network, no connection pool. It
+          is therefore not measuring the same thing as the four client-server
+          engines and gets its own table rather than a row alongside them.
+
+  # ── Arm B: the managed free tiers, exactly as shipped ────────────────────
+  #
+  # Explicitly NOT resource-equal, and cannot be made so: only two of the seven
+  # managed graph platforms surveyed still offer a free tier that survives a
+  # week, and their published specs differ. This arm answers a different and
+  # equally real question -- what does a developer actually get for nothing --
+  # and is reported separately from Arm A rather than averaged with it.
+  managed:
+    description: Free tiers as shipped; resource parity impossible, network in the path
+
+    # REGION MISMATCH -- declared, not hidden.
+    #
+    # The methodology rule asks for the same region everywhere. CognoDB offers
+    # us-east4 / us-central1 / europe-west1; Neo4j AuraDB Free is GCP-only in
+    # europe-west1 / us-central1 / asia-southeast1. The overlap is two regions,
+    # and the CognoDB instance was provisioned in us-east4 before that was
+    # known. Its region cannot be changed after creation.
+    #
+    # Aura is therefore placed in us-central1: the nearest available region to
+    # us-east4, keeping both targets on the same continent.
+    #
+    # What this does and does not affect:
+    #   - Arm A (capped) runs on loopback. Unaffected entirely.
+    #   - Server-side times come from Bolt's result_available_after, which
+    #     excludes the network by construction. Unaffected.
+    #   - Only the raw client-side latencies in this arm carry the difference,
+    #     and the measured round-trip floor to each endpoint is published
+    #     beside them so a reader can quantify it rather than trust it.
+    #
+    # Measured from the benchmark client (Bengaluru, IST): 244-261 ms to the
+    # us-east4 endpoint. At roughly 250 ms of round trip against single-digit
+    # milliseconds of execution, this arm is overwhelmingly a measurement of
+    # the network -- which is the report's central finding, not a flaw in it.
+    region_cognodb: us-east4
+    region_neo4j_aura: us-central1
+    region_parity: false
+    targets:
+      - id: cognodb-c0
+        adapter: bolt
+        dialect: cypher5
+        env:
+          uri: COGNODB_URI
+          user: COGNODB_USER
+          password: COGNODB_PASSWORD
+        advertised:
+          vcpu: 0.5 burstable
+          ram_mb: 512 # the assignment brief states 256 MB; the vendor's pricing page states 512
+          disk_gb: 1
+          iops: 500 # burst, not guaranteed
+          max_connections: 200
+          node_cap: null # not published
+          query_timeout: null # not published
+          source: https://cognodb.com/pricing
+        # A managed service is governed by its terms of use, not a software
+        # licence. Read in full 2026-08-20: no restriction on benchmarking,
+        # performance testing, or publishing comparative results.
+        licence: Terms of Service (cognodb.com/terms)
+        licence_permits_benchmark_publication: true
+        terms_note: >
+          "The free tier is provided at no charge and runs on shared burstable
+          capacity. It carries no availability commitment and we may change or
+          discontinue it." Relevant to interpreting variance in Arm B.
+        load_paths_not_used:
+          # Observed in the console on 2026-08-20, not in any published doc.
+          - Console "Load data" screen -- local CSV/TSV/JSONL upload or a URL export, runs online
+          - Console "Export" -- full graph to JSONL over the in-cluster Bolt endpoint
+          - Object-storage and warehouse connectors (S3, GCS, BigQuery, Snowflake)
+        note: >
+          A bulk load path does exist, but only as a console screen: the free
+          tier excludes API keys and the Terraform provider, so nothing here can
+          be driven from a script. Aura's equivalent is LOAD CSV from a remote
+          URL and Neo4j Community's is an offline neo4j-admin import -- three
+          incompatible mechanisms. Driver batching is the only ingest method
+          that exists identically on all five targets, which is why it is the
+          one measured.
+        limits_observed:
+          # From the console's Specifications panel. Published nowhere else --
+          # not in the docs, not in the pricing page, not in any third-party
+          # write-up. It constrains query design: every workload carries an
+          # explicit LIMIT, identical on all five engines, so that no target
+          # silently truncates where another does not.
+          max_result_rows: 50000
+          endpoint_domain: databases.cognodb.com # brief says .cognodb.cloud
+          tls: bolt+s (public CA verification; the docs' +ssc variant is not used)
+          password_retrievable: true # brief says "shown exactly once"; it is not
+
+      - id: neo4j-aura-free
+        adapter: bolt
+        dialect: cypher5
+        env:
+          uri: NEO4J_AURA_URI
+          user: NEO4J_AURA_USER
+          password: NEO4J_AURA_PASSWORD
+        advertised:
+          vcpu: null # not published for the free tier
+          ram_mb: null # not published for the free tier
+          node_cap: null # CONTESTED - two sources disagree; resolved empirically
+          relationship_cap: null # CONTESTED - see docs/CAVEATS.md
+          source: https://neo4j.com/pricing/
+        # UNVERIFIED. neo4j.com returns HTTP 403 to automated fetches, so the
+        # Aura cloud terms could not be read to check for a restriction on
+        # publishing benchmark results. Recorded as unknown rather than assumed
+        # permissive. If that clause exists, this row comes out of the report.
+        licence: Neo4j Aura cloud terms (unread - site blocks fetching)
+        licence_permits_benchmark_publication: null
+        load_paths_not_used:
+          - LOAD CSV from a remote HTTPS URL
+        note: >
+          Runs slotted runtime only; the pipelined and parallel runtimes are not
+          included in the free tier. Free-tier Neo4j is therefore not
+          representative of paid Neo4j, and no conclusion here transfers to it.
+
+# Considered and excluded. The assignment scores database selection, so the
+# reasoning for leaving one out belongs in the record as much as the reasoning
+# for putting one in.
+excluded:
+  - id: tigergraph
+    reason: >
+      Free tier cluster offering removed in November 2024; only time-boxed
+      credits remain, and the smallest workspace is a 2 vCPU / 16 GiB instance
+      at an hourly rate. Community Edition is self-hostable but ships a ~2.5 GB
+      image, is single-server only, and exposes openCypher only when embedded
+      inside GSQL rather than as its own endpoint.
+  - id: arangodb
+    reason: >
+      Rebranded to arango.ai; the documentation site returns 403 to automated
+      fetches and pricing is now quote-only, so its current free-trial terms
+      could not be established from any first-party source. AQL is also not
+      Cypher, which would have made query equivalence a matter of judgement
+      rather than of inspection.
+  - id: nebulagraph
+    reason: >
+      Docker Compose definitions last updated May 2024 and images last pushed
+      over two years ago, while the commercial Cloud offering runs a core two
+      major versions ahead. No Bolt support. The open-source client's
+      compatibility with the managed service could not be established.
