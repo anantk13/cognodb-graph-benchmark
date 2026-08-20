@@ -100,7 +100,8 @@ class Adapter(ABC):
 
     Lifecycle, in the order the runner calls it:
 
-        connect() -> create_schema() -> load() -> [ execute() xN ] -> footprint() -> close()
+        connect() -> clear() -> create_schema() -> load() -> [ execute() xN ]
+            -> footprint() -> close()
 
     Implementations must not cache results between `execute` calls, must not
     rewrite the query text they are given, and must not vary the connection pool
@@ -136,6 +137,19 @@ class Adapter(ABC):
         the identical list; how each expresses it is the adapter's business.
         The list is recorded in the results so the README can state exactly
         what was indexed where.
+        """
+
+    @abstractmethod
+    def clear(self) -> None:
+        """Delete every node and relationship, so the load starts from empty.
+
+        Containers get a fresh container per run and the embedded engine gets a
+        fresh directory, so both are empty by construction. A managed service is
+        not: it keeps whatever the last run left. Without this, a second run
+        stacks another full copy of the graph on top of the first -- observed,
+        300,236 nodes where the manifest says 161,236 -- and the ingest timing,
+        every latency, and the disk footprint are all then measured against a
+        graph that is not the dataset.
         """
 
     @abstractmethod

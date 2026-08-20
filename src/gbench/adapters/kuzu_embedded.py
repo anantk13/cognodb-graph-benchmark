@@ -75,6 +75,11 @@ class KuzuAdapter(Adapter):
             raise RuntimeError(f"{self.name}: connect() has not been called")
         return self._conn
 
+    # ── reset ──────────────────────────────────────────────────────────────
+
+    def clear(self) -> None:
+        """No-op: `connect` already removes the database directory."""
+
     # ── schema ─────────────────────────────────────────────────────────────
 
     def create_schema(self, indexes: list[tuple[str, str]]) -> None:

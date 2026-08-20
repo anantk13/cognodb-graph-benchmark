@@ -61,6 +61,16 @@ class FalkorAdapter(Adapter):
             raise RuntimeError(f"{self.name}: connect() has not been called")
         return self._graph
 
+    # ── reset ──────────────────────────────────────────────────────────────
+
+    def clear(self) -> None:
+        """Drop the whole graph key. Cheaper than deleting node by node."""
+        try:
+            self.graph.delete()
+        except Exception:  # noqa: BLE001 - absent graph is already clear
+            pass
+        self._graph = self._db.select_graph(GRAPH_KEY)  # type: ignore[union-attr]
+
     # ── schema ─────────────────────────────────────────────────────────────
 
     def create_schema(self, indexes: list[tuple[str, str]]) -> None:

@@ -127,6 +127,8 @@ def measure_target(
     cold = measure_round_trip_floor(adapter, iterations=100 if not quick else 50)
     record["round_trip_floor_cold"] = cold.as_dict() if cold else None
 
+    # Empty before loading. Managed services keep what the last run left.
+    adapter.clear()
     adapter.create_schema(registry.indexes)
 
     batch = int(config.run.get("load_batch_size", 1000))

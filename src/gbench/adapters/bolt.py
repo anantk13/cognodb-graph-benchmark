@@ -81,6 +81,24 @@ class BoltAdapter(Adapter):
             raise RuntimeError(f"{self.name}: connect() has not been called")
         return self._driver
 
+    # ── reset ──────────────────────────────────────────────────────────────
+
+    def clear(self, batch: int = 10_000) -> None:
+        """Delete the graph in batches until nothing remains.
+
+        Batched rather than a single `MATCH (n) DETACH DELETE n`: on a 512 MB
+        instance holding a few hundred thousand nodes, deleting them in one
+        transaction exhausts memory and drops the connection. That is exactly
+        how this bug first surfaced.
+        """
+        while True:
+            rows = self._run(
+                f"MATCH (n) WITH n LIMIT {batch} DETACH DELETE n RETURN count(n) AS deleted",
+                {},
+            )
+            if not rows or not rows[0].get("deleted"):
+                break
+
     # ── schema ─────────────────────────────────────────────────────────────
 
     def create_schema(self, indexes: list[tuple[str, str]]) -> None:
