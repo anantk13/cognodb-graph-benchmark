@@ -11,7 +11,7 @@ into it.
 
 ## The short version
 
-Three findings, in order of how much they surprised me.
+Four findings, in order of how much they surprised me.
 
 ### 1. The managed graph database free tier is nearly extinct
 
@@ -24,7 +24,27 @@ shaped the way it is: "run every platform's free tier on equal resources" is
 not a thing that can be done, because the tiers that exist span 100 MB to 4 GB
 and most of them expire before you finish measuring.
 
-### 2. At CognoDB's own free-tier size, most graph engines will not start
+### 2. Ingest differs by 260×, on identical hardware and an identical method
+
+Every engine loaded the same 161,236 nodes and 381,523 relationships by driver
+batching at the same batch size, under the same 0.5 vCPU cgroup cap:
+
+| Engine | Relationships/s | Wall clock |
+|---|---:|---:|
+| FalkorDB | **84,196** | 5 s |
+| Neo4j Community | 8,121 | 47 s |
+| Neo4j AuraDB Free | 4,194 | 91 s |
+| Memgraph | 2,686 | 142 s |
+| CognoDB c0 | 1,999 | 191 s |
+| Kuzu | 320 | 1,193 s |
+
+FalkorDB is 31× Memgraph and 10× Neo4j Community. Kuzu, at the other end,
+commits and flushes on every batch — 20 minutes for a graph FalkorDB ingests
+in five seconds. Each engine's own faster bulk loader is documented as
+measured-but-not-used; the managed targets have no equivalent, so an ingest
+column mixing four mechanisms would compare nothing.
+
+### 3. At CognoDB's own free-tier size, most graph engines will not start
 
 CognoDB c0 advertises 512 MB. Put four other engines in a container with that
 same limit and watch what happens:
@@ -40,15 +60,27 @@ Neo4j's final log line before the kernel kills it is `Started.` A readiness
 check that trusted the log would have recorded a dead container as a healthy
 target.
 
-### 3. Most of what a free-tier benchmark measures is the network
+### 4. Most of what a free-tier benchmark measures is the network — until you add clients
 
-A `RETURN 1` against CognoDB c0 from this benchmark client costs **237 ms
-client-side and 0 ms server-side.** Against Neo4j Aura Free, 86 ms.
+A `RETURN 1` against CognoDB c0 from this benchmark client costs **238 ms
+client-side and 0 ms server-side.** Its point lookup costs 238.3 ms against a
+238.1 ms floor: **0.2 ms of database.** Against Neo4j Aura Free the floor is
+87 ms, with server-side times of 1–8 ms. Single-client latency in this arm is
+a table of network distances wearing a database's name.
 
-At that ratio, a client-side latency table for the managed tier is a table of
-network distances wearing a database's name. This harness measures the
-round-trip floor to every target and records the server-reported execution time
-of every single query, so the two can be told apart.
+Concurrency tells a different story, and a more useful one:
+
+| | 1 client | 10 | 40 | RTT floor |
+|---|---:|---:|---:|---:|
+| CognoDB c0 | 0.7 q/s | 9.5 | **19.4** | 238 ms |
+| Neo4j AuraDB Free | 8 q/s | 76 | **264** | 87 ms |
+
+At 238 ms, forty clients could theoretically sustain ~168 q/s. CognoDB
+delivered 19.4. **At concurrency it stops being network-bound and the 0.5 vCPU
+shows.** Aura reached 264 against a ~460 ceiling. So the honest version of this
+finding is narrower than the one I started with: the network dominates the
+single-client numbers completely, and stops dominating as soon as you load the
+thing up.
 
 ---
 
