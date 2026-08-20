@@ -537,6 +537,38 @@ Neo4j winning the aggregation (3.38 ms) against Memgraph (11.60 ms) is the
 result I least expected, given Memgraph markets on speed and holds the whole
 graph in memory.
 
+### How much of FalkorDB's lead is the engine? Less than it looks
+
+The client-side numbers make FalkorDB look 3.5x faster than Neo4j on three-hop
+traversal. The server-reported clock says otherwise.
+
+| | client p50 | server p50 | client + protocol |
+|---|---:|---:|---:|
+| FalkorDB, 3-hop | 3.12 ms | **0.24 ms** | 2.88 ms |
+| Neo4j, 3-hop | 10.98 ms | **1.00 ms** | 9.98 ms |
+| FalkorDB, aggregation | 3.27 ms | **2.68 ms** | 0.59 ms |
+| Neo4j, aggregation | 3.38 ms | **2.00 ms** | 1.38 ms |
+
+Two things fall out.
+
+**Most of the traversal gap is not the database.** About 9 ms of Neo4j's 11 ms
+is driver and protocol overhead, against FalkorDB's 2.9 ms. FalkorDB's engine
+is faster here, but by much less than the client-side column implies -- and
+part of the remaining difference is that the two are driven through different
+client libraries, which is a property of this harness rather than of either
+engine.
+
+**Neo4j wins the aggregation at the engine level**, 2.00 ms against 2.68 ms,
+while looking tied client-side. Reporting only client latency would have got
+the direction of that comparison wrong.
+
+Two limits on how hard this can be pushed. Bolt reports server time in whole
+milliseconds, so Neo4j's "1.00 ms" is somewhere in 0.5-1.49 ms while FalkorDB
+reports 0.24 ms at sub-millisecond resolution -- the ordering is safe, the
+ratio is not. And **Memgraph does not populate the Bolt field at all**, so it
+cannot be placed on this axis; its server column reads "not reported"
+throughout.
+
 ### Memory: not the binding constraint, and the sweep says so
 
 Every engine is flat across 512 MB, 1 GB and 2 GB — FalkorDB 3.18/3.16/3.12 ms
