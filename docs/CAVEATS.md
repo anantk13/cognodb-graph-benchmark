@@ -107,6 +107,18 @@ Redesigned to expand along `OFFICER_OF`, row counts now go 3 → 30 → 1000 and
 latency is monotonic. **None of this was visible from latency alone; it was
 caught by recording row counts beside every measurement.**
 
+**An engine returning a fifth of the rows, invisibly.** The three-hop
+traversal returned 1000 rows on Neo4j and FalkorDB and 184 on Kuzu, from the
+same string and the same start node, because Kuzu pushes `LIMIT` below
+`DISTINCT`. Kuzu's three-hop latency looked *good* -- it was doing a fraction
+of the work. Latency alone showed nothing wrong; only the row-count comparison
+exposed it. The traversals now avoid `DISTINCT` entirely. See
+`docs/METHODOLOGY.md` for the full measurement.
+
+Worth recording how close this came to being published the wrong way round:
+the first hypothesis was that Kuzu was wrong, the second that this harness's
+Kuzu schema was wrong, and it was neither.
+
 **A statistics bug that changed a published threshold.** Two functions
 computing the minimum sample size for a bounded p95 interval disagreed, because
 one omitted the `+1` on the upper order statistic. They now share one

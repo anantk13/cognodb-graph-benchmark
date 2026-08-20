@@ -170,6 +170,79 @@ managed arm, where the network is 240 ms, it does not matter at all.
 
 ---
 
+## Identical query text is not the same query
+
+Here is the finding I did not expect at all.
+
+The harness deliberately sends every engine the same characters. Not
+"equivalent" Cypher — the same string, so that "same logical query" is
+checkable with `diff` rather than by judgement. For this dataset all seven
+workloads came out byte-identical across all four dialects, which felt like a
+small triumph.
+
+It is not sufficient.
+
+The three-hop traversal was written the obvious way:
+
+```cypher
+MATCH (o:Officer {node_id: $id})-[:OFFICER_OF]->(:Entity)
+      <-[:OFFICER_OF]-(:Officer)-[:OFFICER_OF]->(e2:Entity)
+RETURN DISTINCT e2.node_id AS id LIMIT 1000
+```
+
+Same string, same start node, same graph, on three engines:
+
+| Engine | Rows returned |
+|---|---:|
+| Neo4j | 1000 |
+| FalkorDB | 1000 |
+| **Kuzu** | **184** |
+
+I assumed my schema was wrong. Kuzu is the one engine here with a declared
+schema, and I had modelled its relationship tables as a `REL TABLE GROUP`
+spanning several endpoint pairs — an obvious place for a reverse traversal to
+silently lose edges. So I built a five-node graph by hand and checked forward
+traversal, reverse traversal, and reverse traversal across a group.
+
+All correct. Every case matched what Neo4j would return.
+
+The real answer came from asking the loaded database directly:
+
+```
+DISTINCT + LIMIT 1000   →   184 rows
+DISTINCT, no LIMIT      →  1182 rows
+count(*), all paths     →  6678 rows
+```
+
+**Kuzu pushes the limit below the deduplication.** It takes 1,000 of the 6,678
+matching paths and then deduplicates *those* down to 184. Neo4j and FalkorDB
+deduplicate all 6,678 down to 1,182 and then take 1,000 of them.
+
+Rewriting it to sequence the two explicitly —
+`WITH DISTINCT e2 RETURN e2.node_id LIMIT 1000` — changes nothing. The
+optimiser pushes the limit past that barrier as well.
+
+So there is no way to write `DISTINCT` and `LIMIT` in one query such that these
+engines agree. The traversals in this benchmark drop `DISTINCT` entirely and
+count paths instead of distinct endpoints, because without it every engine
+returns exactly `min(paths, LIMIT)` and the workload is unambiguous.
+
+Two things worth sitting with.
+
+**Latency showed nothing wrong.** Kuzu's three-hop query looked *fast*, because
+it was doing a fraction of the work. Had I only recorded durations — which is
+what a benchmark is nominally for — I would have published a number that made
+Kuzu look good for a reason that had nothing to do with Kuzu being good. The
+only thing that caught it was recording row counts beside every measurement and
+comparing them across targets.
+
+**And I nearly blamed the wrong party.** My first instinct was that Kuzu was
+wrong. My second was that my schema was wrong. It was neither: it is a
+legitimate difference in evaluation order between two Cypher implementations,
+and the query was ambiguous. Publishing "Kuzu returns the wrong answer" would
+have been a benchmarking crime committed with complete sincerity, which is how
+most of them are committed.
+
 ## The bugs I shipped
 
 A benchmark that reports no defects in its own design has probably not looked

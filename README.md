@@ -139,6 +139,14 @@ documentation, only in the instance's own console panel.
 | Write | set a property on one Officer, indexed |
 | Mixed | 90/10 read/write at 1, 10 and 40 concurrent clients |
 
+**No traversal uses `DISTINCT`**, and that is a finding rather than a style
+choice. Written as `RETURN DISTINCT ... LIMIT 1000`, the three-hop query
+returns 1000 rows on Neo4j and FalkorDB and **184 on Kuzu**, from the same
+string and the same start node — Kuzu pushes the limit below the
+deduplication. No formulation makes them agree, so the traversals count paths
+instead, where every engine returns exactly `min(paths, LIMIT)`. Full
+measurement in [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
+
 Traversal start nodes are drawn from a seeded pool of Officers with at least
 three `OFFICER_OF` edges — 15,271 qualify, three times the sample actually
 drawn. Both failure modes here are real and documented: sampling uniformly made

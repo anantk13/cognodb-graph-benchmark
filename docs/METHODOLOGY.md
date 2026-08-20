@@ -117,6 +117,39 @@ competitor it named had in fact won the mean, p50, p90 and p95.
 found only 43.5% of measured VM benchmark pairs ever reach a steady state and
 ~18% get slower over time. Every warm-up sample is retained in the raw results.
 
+## No traversal uses DISTINCT
+
+Measured on this dataset, the three-hop traversal written as
+`RETURN DISTINCT ... LIMIT 1000` returns:
+
+| Engine | Rows |
+|---|---:|
+| Neo4j | 1000 |
+| FalkorDB | 1000 |
+| Kuzu | **184** |
+
+Same string, same start node, same graph. Asking the loaded Kuzu database
+directly: `DISTINCT + LIMIT 1000` gives 184, `DISTINCT` with no limit gives
+1182, and `count(*)` over all matching paths gives 6678. Kuzu pushes the limit
+below the deduplication -- it takes 1000 of the 6678 paths and deduplicates
+those to 184, where the others deduplicate 6678 to 1182 and then take 1000.
+
+Rewriting it as `WITH DISTINCT e2 RETURN e2.node_id LIMIT 1000` does not help;
+the optimiser pushes the limit past that barrier as well. There is no
+formulation of `DISTINCT` plus `LIMIT` on which these engines agree.
+
+Before attributing this to Kuzu, its traversal semantics were checked directly
+on a hand-built five-node graph: forward traversal, reverse traversal, and
+reverse traversal across a `REL TABLE GROUP` all returned exactly what Neo4j
+would. The divergence is an evaluation-order difference, not an error, and the
+query was ambiguous.
+
+The traversals therefore drop `DISTINCT` and count paths rather than distinct
+endpoints. Every engine then returns exactly `min(paths, LIMIT)`.
+
+**Byte-identical query text is necessary but not sufficient for the same
+logical query.** That is the single most useful thing this harness found.
+
 ## Row counts are compared across targets
 
 Every workload records the distribution of row counts it returned. A query
