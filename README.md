@@ -581,6 +581,47 @@ This is the finding that most changed during the work. "Free-tier benchmarks
 measure the network" is true of the headline latency numbers and false of the
 throughput numbers, and only measuring both makes the difference visible.
 
+### CognoDB's own metrics — the footprint row, filled in
+
+The harness reports CognoDB's footprint as "not observable", because nothing
+about disk or memory is reachable over Bolt. Its console exposes all of it.
+**These figures are read from the vendor's dashboard, not measured by this
+harness**, and are kept separate from the measured tables for that reason.
+
+| Metric | Value | What it says |
+|---|---|---|
+| Disk used | **931 MB / 1 GiB** | 91% of the tier limit, for a 24 MB CSV pair |
+| Memory (RSS) | **387 MB / 512 MB** | 76% of the cap |
+| CPU | **peaked at 0.50 / 0.5 vCPU** | pegged at 100% of the cap during the run |
+| Cache hit ratio | **99.7%** | working set fits in memory; not disk-bound |
+| Spill to disk | 0 B | no query exceeded memory |
+| Rollbacks | 0/s | no contention failures |
+| Nodes | 161,236 | matches the manifest exactly |
+| Relationships | **380,125** | **1,398 fewer than the 381,523 the same instance returns to `MATCH ()-[r]->() RETURN count(r)`** |
+
+Three of these matter.
+
+**931 MB of disk for this graph, against Kuzu's 89 MiB for the identical data —
+about 10x.** It also explains a failure earlier in this work: a re-run that
+loaded a second copy without clearing first reached 300,236 nodes and then
+dropped its connection mid-load. At 931 MB for one copy, two copies cannot fit
+in a 1 GiB tier. The harness now clears before loading, and this is the evidence
+for why that was necessary.
+
+**CPU pegged at 100% of the 0.5 vCPU allocation** during the measurement window,
+while memory sat at 76% and the cache hit ratio held at 99.7%. That is direct
+confirmation of the concurrency finding above: at 40 clients CognoDB is not
+network-bound and not memory-bound, it is out of CPU.
+
+**The relationship count disagrees with the database's own query result.** The
+console reports 380,125; `MATCH ()-[r]->() RETURN count(r)` against the same
+instance returns 381,523, which matches the manifest. This report does not
+resolve which is correct -- it may be sampling interval, a counter that lags,
+or a genuine difference in what each path counts. **It is recorded as an
+unexplained discrepancy rather than picked between.** Every measured number in
+this report uses the query result, because that is the number the harness can
+verify.
+
 ### What indexes existed, on every platform
 
 The identical `(label, property)` set was passed to every adapter before any

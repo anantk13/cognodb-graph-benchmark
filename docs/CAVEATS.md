@@ -174,6 +174,23 @@ unfilled `.env` would have reached the driver and failed as an opaque
 authentication error mid-run. Targets now declare which credentials may be
 blank, and template placeholders are rejected by name.
 
+## An unresolved discrepancy
+
+CognoDB's console reports **380,125 relationships**. A `MATCH ()-[r]->() RETURN
+count(r)` against the same instance at the same time returns **381,523**, which
+matches the dataset manifest exactly. The two disagree by 1,398.
+
+This report does not resolve it. Candidate explanations -- a sampling interval
+on the metrics pipeline, a counter that lags writes, or the two paths counting
+different things -- are all plausible and none was tested. Every measured
+number here uses the query result, because that is the figure the harness can
+verify against the manifest.
+
+Worth stating because it cuts both ways: if the console is right, the load lost
+1,398 relationships on this target and the graph is not identical to the
+others'. The harness's own verification says otherwise, but it is checking the
+same source it would need to be wrong about.
+
 ## Things that could not be verified
 
 - **Neo4j Aura's cloud terms.** `neo4j.com` returns HTTP 403 to automated
