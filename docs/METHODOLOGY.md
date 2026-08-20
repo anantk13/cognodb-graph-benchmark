@@ -154,5 +154,9 @@ logical query.** That is the single most useful thing this harness found.
 
 Every workload records the distribution of row counts it returned. A query
 returning 12 rows on one engine and 0 on another is not the same query, however
-similar the text looks. This check caught three real defects in this harness's
-own workload design before any result was published -- see `docs/CAVEATS.md`.
+similar the text looks.
+
+This check caught **four** real defects before any result was published: three
+in this harness's own workload design, and one genuine semantic divergence
+between two Cypher engines. In every case latency alone looked fine. See
+`docs/CAVEATS.md`.

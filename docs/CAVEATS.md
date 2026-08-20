@@ -134,10 +134,13 @@ blank, and template placeholders are rejected by name.
 
 ## Things that could not be verified
 
-- **Licences.** Whether Memgraph's BSL 1.1 and FalkorDB's SSPL v1 permit
-  publishing benchmark results has not been confirmed. Some database licences
-  contain a DeWitt clause forbidding exactly that. `targets.yaml` records this
-  as unverified and the CLI prints a warning before every run.
+- **Neo4j Aura's cloud terms.** `neo4j.com` returns HTTP 403 to automated
+  fetches, so the terms governing the managed service could not be read to
+  check for a restriction on publishing benchmark results. Recorded as unknown
+  rather than assumed permissive; the CLI prints a warning before every run.
+  (The other four were read in full and are clear -- Memgraph's BSL 1.1 and
+  FalkorDB's SSPL v1 restrict hosting or distributing the engine as a service
+  and carry no DeWitt clause; CognoDB's terms of service are likewise clear.)
 - **CognoDB's engine version via the wire.** `dbms.components()` does not
   exist on CognoDB, so there is no Cypher route to the version. The console
   reports `v0.9.11`; that is the only source.
