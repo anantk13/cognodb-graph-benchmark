@@ -397,6 +397,31 @@ def render_charts(records: list[Record], out_dir: Path) -> list[Path]:
     return written
 
 
+def inject_into_readme(readme: Path, results_md: Path, charts: list[Path]) -> bool:
+    """Splice the generated matrix and charts into the README between markers.
+
+    The brief asks for the full results matrix *in* the README, not linked from
+    it -- a reader who only opens the README must see every metric. Keeping it
+    generated rather than pasted means it cannot drift from the run that
+    produced it.
+    """
+    start, end = "<!-- RESULTS:START -->", "<!-- RESULTS:END -->"
+    text = readme.read_text()
+    if start not in text or end not in text:
+        return False
+
+    body = results_md.read_text()
+    body = body.split("\n", 2)[2] if body.startswith("<!--") else body
+    body = body.replace("](charts/", "](results/charts/")
+
+    gallery = "\n".join(
+        f"![{p.stem.replace('-', ' ')}](results/charts/{p.name})\n" for p in charts
+    )
+    block = f"{start}\n\n{body}\n\n### Charts\n\n{gallery}\n{end}"
+    readme.write_text(text[: text.index(start)] + block + text[text.index(end) + len(end) :])
+    return True
+
+
 def generate(raw_dir: Path, out_dir: Path) -> Path:
     """Write `results/RESULTS.md` and the charts from the most recent run."""
     records = load_records(raw_dir)
@@ -447,4 +472,8 @@ def generate(raw_dir: Path, out_dir: Path) -> Path:
     sections.append("")
     path = out_dir / "RESULTS.md"
     path.write_text("\n".join(sections))
+
+    readme = out_dir.parent / "README.md"
+    if readme.exists():
+        inject_into_readme(readme, path, rendered)
     return path
