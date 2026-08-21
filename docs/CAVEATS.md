@@ -174,6 +174,42 @@ unfilled `.env` would have reached the driver and failed as an opaque
 authentication error mid-run. Targets now declare which credentials may be
 blank, and template placeholders are rejected by name.
 
+## Repeating the managed arm was not possible: the free tier slowed by roughly 250x
+
+Section 7 of the brief names variance across repeated runs. The capped arm was
+repeated three times and its spread is published. **The managed arm could not
+be repeated**, and the reason is itself a result about free-tier benchmarking.
+
+Measured. In the first run, CognoDB c0 ingested 161,236 nodes and 381,523
+relationships in **191 seconds**. A second run of the identical load, started
+roughly twelve hours later against the same instance after `clear()` emptied
+it, reached **55,000 relationships in 3 hours 55 minutes** before being
+abandoned. Same client, same code, same batch size, same graph. No connection
+errors were logged; the client sat blocked on the server, consuming no CPU of
+its own.
+
+That is a factor of roughly 250 on the same operation.
+
+**What is not established: why.** The hypothesis that fits is exhausted burst
+credit -- CognoDB c0 is a *burstable* 0.5 vCPU allocation, the console showed
+CPU pegged at 100% of that allocation throughout the first run's measurement
+window, and burstable instances typically accrue credit while idle and consume
+it under load. The vendor publishes no burst-credit policy, exposes no credit
+metric, and this report did not instrument one. **It is a plausible mechanism
+consistent with the observation, not a finding.** Sustained multi-tenant
+contention from another workload on the same host would produce the same
+symptom and cannot be ruled out from outside.
+
+What can be said without qualification: **a free tier that serves a benchmark
+once may not serve the same benchmark again**, and any single-run number taken
+from one is a measurement of that tier's condition at that moment. The
+CognoDB figures published here come from a run that completed normally, and no
+throttled measurement is mixed into them.
+
+Practical consequence for anyone extending this harness: repeated runs against
+a burstable free tier need idle time between them, and how much is not
+something this study can specify.
+
 ## An unresolved discrepancy
 
 CognoDB's console reports **380,125 relationships**. A `MATCH ()-[r]->() RETURN

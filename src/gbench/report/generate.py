@@ -92,18 +92,29 @@ def _tier_bytes(tier: str | None) -> int:
 
 
 def load_records(raw_dir: Path) -> list[Record]:
-    """Read every result file from the most recent run directory."""
-    runs = sorted((p for p in raw_dir.iterdir() if p.is_dir()), reverse=True)
+    """The most recent result for each target, across every run directory.
+
+    Not simply the latest directory. Repeat runs need not cover every target --
+    the variance runs here repeat the capped arm only, because repeating the
+    managed arm exhausted a free tier's burstable CPU allowance -- and reading
+    one directory would silently drop every target that run did not include.
+
+    Per target rather than per directory, so the headline tables always show
+    the newest measurement of each target and the variance section separately
+    reports the spread across all of them.
+    """
+    runs = sorted(p for p in raw_dir.iterdir() if p.is_dir())
     if not runs:
         raise FileNotFoundError(f"no runs under {raw_dir}; run `make bench` first")
-    latest = runs[0]
-    records = [
-        Record(path=path, data=json.loads(path.read_text()))
-        for path in sorted(latest.rglob("*.json"))
-    ]
-    if not records:
-        raise FileNotFoundError(f"run directory {latest} contains no results")
-    return records
+
+    newest: dict[str, Record] = {}
+    for run in runs:  # oldest first, so later runs overwrite earlier ones
+        for path in sorted(run.rglob("*.json")):
+            newest[path.name] = Record(path=path, data=json.loads(path.read_text()))
+
+    if not newest:
+        raise FileNotFoundError(f"no results in any run directory under {raw_dir}")
+    return [newest[k] for k in sorted(newest)]
 
 
 def _fmt(value: float | None, unit: str = "", digits: int = 2) -> str:
