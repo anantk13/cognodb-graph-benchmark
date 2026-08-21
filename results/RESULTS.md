@@ -163,6 +163,8 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 
 ## Mixed workload -- sustained throughput
 
+_Read/write mix **90% reads, 10% writes**, at client concurrencies of **1, 10 and 40**. The achieved ratio is reported per level rather than assumed. Throughput counts operations the target accepted: FalkorDB sheds load past a bounded queue and its failure count is listed alongside, where Memgraph and Neo4j queue instead and pay in latency._
+
 | Target | Clients | Sustained q/s | p50 | p95 | Reads | Writes | Failures |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `cognodb-c0` | 1 | 0.7 | 479.30ms | 4,229.02ms | 17 | 5 | 0 |

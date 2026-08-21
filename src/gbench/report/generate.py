@@ -526,6 +526,11 @@ def generate(raw_dir: Path, out_dir: Path) -> Path:
 
     sections += [
         "\n## Mixed workload -- sustained throughput\n",
+        "_Read/write mix **90% reads, 10% writes**, at client concurrencies of "
+        "**1, 10 and 40**. The achieved ratio is reported per level rather than "
+        "assumed. Throughput counts operations the target accepted: FalkorDB "
+        "sheds load past a bounded queue and its failure count is listed "
+        "alongside, where Memgraph and Neo4j queue instead and pay in latency._\n",
         table_concurrency(records),
         "\n## Cold start versus steady state\n",
         "_A trivial round trip against a freshly started engine holding no data, "
