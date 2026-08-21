@@ -9,9 +9,9 @@ into it.
 
 ---
 
-## The short version
+## Summary of findings
 
-Four findings, in order of how much they surprised me.
+Four findings, in order of significance.
 
 ### 1. The managed graph database free tier is nearly extinct
 
@@ -78,13 +78,13 @@ Concurrency tells a different story, and a more useful one:
 At 238 ms, forty clients could theoretically sustain ~168 q/s. CognoDB
 delivered 19.4. **At concurrency it stops being network-bound and the 0.5 vCPU
 shows.** Aura reached 264 against a ~460 ceiling. So the honest version of this
-finding is narrower than the one I started with: the network dominates the
-single-client numbers completely, and stops dominating as soon as you load the
-thing up.
+finding is narrower than it first appears: the network dominates the
+single-client numbers completely, and ceases to dominate as soon as the
+instance is placed under load.
 
 ---
 
-## What was benchmarked
+## Databases under test
 
 | Database | Storage architecture | Where it ran |
 |---|---|---|
@@ -99,7 +99,7 @@ language constant isolates storage architecture as the variable. A set that
 mixed in AQL or GSQL would have made "are these really the same query?" a
 matter of judgement instead of a matter of `diff`.
 
-### Considered and excluded
+### Databases considered and excluded
 
 The brief scores database *selection*, so the reasoning for leaving one out
 belongs in the record as much as the reasoning for putting one in.
@@ -153,7 +153,7 @@ The archive URL ends in `LATEST` and changes without notice, so
 
 ---
 
-## Workloads
+## Workloads and query design
 
 Seven, and **the query text is byte-identical across all four dialects** — not
 "equivalent", the same characters. Every one carries an explicit `LIMIT`,
@@ -195,7 +195,7 @@ Nothing in it is typed by hand._
 <!-- RESULTS:START -->
 
 
-## Targets and their advertised specifications
+### Targets and their advertised specifications
 
 | Target | Arm | Image / endpoint | Advertised | Dialect |
 |---|---|---|---|---|
@@ -212,7 +212,7 @@ Nothing in it is typed by hand._
 | `cognodb-c0` | managed | `managed service` | vcpu: 0.5 burstable, ram_mb: 512, disk_gb: 1, iops: 500, max_connections: 200 | `cypher5` |
 | `neo4j-aura-free` | managed | `managed service` | not published | `cypher5` |
 
-## Ingest
+### Ingest
 
 _Driver batching, identical batch size on every target. Each engine's faster native path was deliberately not used; see the README._
 
@@ -231,12 +231,12 @@ _Driver batching, identical batch size on every target. Each engine's faster nat
 | `cognodb-c0` | 845 | 1,999 | 190.9s | yes |
 | `neo4j-aura-free` | 1,773 | 4,194 | 91.0s | yes |
 
-## Latency by workload
+### Latency by workload
 
 _p50 and p95 only. This client is closed-loop, which under-samples stalls; the distortion is negligible at p50, around 1.5x at p95, and 20x or worse at p99, so no p99 is published from this path. `p95 CI` is a distribution-free confidence interval from order statistics -- where it reads **unbounded**, the sample was too small to close the interval and the p95 should not be quoted._
 
 
-### Point lookup
+#### Point lookup
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -253,7 +253,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 238.26ms | 285.54ms | [272.01, 300.27] | 243.69ms | 0.00ms | 238.10ms | 1 |
 | `neo4j-aura-free` | 87.28ms | 91.24ms | [90.26, 94.80] | 89.89ms | 1.00ms | 87.45ms | 1 |
 
-### Filtered lookup (indexed)
+#### Filtered lookup (indexed)
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -270,7 +270,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 310.03ms | 823.12ms | [810.95, 861.95] | 464.49ms | 0.00ms | 238.10ms | 1000 |
 | `neo4j-aura-free` | 184.61ms | 536.24ms | [520.26, 604.95] | 234.01ms | 2.00ms | 87.45ms | 1000 |
 
-### 1-hop traversal
+#### 1-hop traversal
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -287,7 +287,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 240.40ms | 327.65ms | [315.65, 338.62] | 257.15ms | 0.00ms | 238.10ms | 3 |
 | `neo4j-aura-free` | 87.84ms | 101.30ms | [97.76, 108.07] | 91.21ms | 1.00ms | 87.45ms | 3 |
 
-### 2-hop traversal
+#### 2-hop traversal
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -304,7 +304,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 259.91ms | 726.84ms | [596.12, 766.12] | 362.96ms | 0.00ms | 238.10ms | 1000 |
 | `neo4j-aura-free` | 91.68ms | 139.07ms | [115.58, 203.44] | 99.25ms | 1.00ms | 87.45ms | 1000 |
 
-### 3-hop traversal
+#### 3-hop traversal
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -321,7 +321,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 739.18ms | 1,002.06ms | [920.65, 1,047.93] | 726.48ms | 0.00ms | 238.10ms | 1000 |
 | `neo4j-aura-free` | 201.64ms | 274.90ms | [271.47, 285.64] | 194.72ms | 3.00ms | 87.45ms | 1000 |
 
-### Aggregation (group-by)
+#### Aggregation (group-by)
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -338,7 +338,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 331.27ms | 417.01ms | [407.25, 436.17] | 346.90ms | 0.00ms | 238.10ms | 40 |
 | `neo4j-aura-free` | 97.08ms | 108.32ms | [106.19, 113.10] | 99.40ms | 8.00ms | 87.45ms | 40 |
 
-### Write (indexed update)
+#### Write (indexed update)
 
 | Target | p50 | p95 | p95 CI | mean | server p50 | RTT floor p50 | rows |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -355,7 +355,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `cognodb-c0` | 3,871.26ms | 4,866.65ms | [4,737.78, 6,796.57] | 4,027.65ms | 0.00ms | 238.10ms | 1 |
 | `neo4j-aura-free` | 91.91ms | 103.15ms | [100.00, 108.76] | 96.50ms | 1.00ms | 87.45ms | 1 |
 
-## Mixed workload -- sustained throughput
+### Mixed workload -- sustained throughput
 
 | Target | Clients | Sustained q/s | p50 | p95 | Reads | Writes | Failures |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -393,7 +393,7 @@ _p50 and p95 only. This client is closed-loop, which under-samples stalls; the d
 | `neo4j-aura-free` | 10 | 76.0 | 99.60ms | 254.80ms | 2,056 | 225 | 0 |
 | `neo4j-aura-free` | 40 | 264.3 | 116.80ms | 311.94ms | 7,147 | 782 | 0 |
 
-## Cold start versus steady state
+### Cold start versus steady state
 
 _A trivial round trip against a freshly started engine holding no data, against the same round trip once the graph is loaded. Reported separately, never averaged together._
 
@@ -411,7 +411,7 @@ _A trivial round trip against a freshly started engine holding no data, against 
 | `cognodb-c0` | 238.87ms | 270.50ms | 238.10ms | 298.79ms | 1.00x |
 | `neo4j-aura-free` | 87.45ms | 96.75ms | 87.45ms | 92.58ms | 1.00x |
 
-## Footprint
+### Footprint
 
 | Target | Stored | Memory | Nodes | Relationships | Enforced cgroup |
 |---|---:|---:|---:|---:|---|
@@ -428,53 +428,41 @@ _A trivial round trip against a freshly started engine holding no data, against 
 | `cognodb-c0` | not observable | not observable | 161,236 | 381,523 | not containerised |
 | `neo4j-aura-free` | not observable | not observable | 161,236 | 381,523 | not containerised |
 
-## Failures and did-not-finish
+### Failures and did-not-finish
 
 | Target | Outcome | Reason | Detail |
 |---|---|---|---|
 | `neo4j-community @ 512m` | DNF | out of memory | exit=137, oom_killed=True |
 
-## Charts
-
-### Latency capped
-
-![Latency capped](results/charts/latency-capped.png)
-
-### Latency managed
-
-![Latency managed](results/charts/latency-managed.png)
-
-### Memory sweep
-
-![Memory sweep](results/charts/memory-sweep.png)
-
-### Concurrency
-
-![Concurrency](results/charts/concurrency.png)
-
-### Network split
-
-![Network split](results/charts/network-split.png)
-
-### Warmup
-
-![Warmup](results/charts/warmup.png)
-
-
-
 ### Charts
 
-![latency capped](results/charts/latency-capped.png)
+#### Latency by workload — Arm A, identical cgroup limits
 
-![latency managed](results/charts/latency-managed.png)
+![Latency by workload — Arm A, identical cgroup limits](results/charts/latency-capped.png)
 
-![memory sweep](results/charts/memory-sweep.png)
+#### Latency by workload — Arm B, managed free tiers
 
-![concurrency](results/charts/concurrency.png)
+![Latency by workload — Arm B, managed free tiers](results/charts/latency-managed.png)
 
-![network split](results/charts/network-split.png)
+#### Latency against the container memory limit
 
-![warmup](results/charts/warmup.png)
+![Latency against the container memory limit](results/charts/memory-sweep.png)
+
+#### Sustained throughput against concurrency — Arm A
+
+![Sustained throughput against concurrency — Arm A](results/charts/concurrency-capped.png)
+
+#### Sustained throughput against concurrency — Arm B
+
+![Sustained throughput against concurrency — Arm B](results/charts/concurrency-managed.png)
+
+#### Server execution time versus network time
+
+![Server execution time versus network time](results/charts/network-split.png)
+
+#### Warm-up curves
+
+![Warm-up curves](results/charts/warmup.png)
 
 <!-- RESULTS:END -->
 
@@ -487,7 +475,7 @@ including three defects found in this harness before publishing.
 
 ---
 
-## Analysis — what the numbers show, and why the platforms differ
+## Analysis
 
 ### Ingest: the 260× spread is a durability decision, not a speed contest
 
@@ -533,9 +521,9 @@ Neo4j on three-hop traversal while being slower than both on aggregation.** The
 engines are not ordered on a single axis of speed. They are ordered differently
 per workload shape, which is the actual answer to "which is fastest".
 
-Neo4j winning the aggregation (3.38 ms) against Memgraph (11.60 ms) is the
-result I least expected, given Memgraph markets on speed and holds the whole
-graph in memory.
+Neo4j winning the aggregation outright — 3.38 ms against Memgraph's 11.60 ms,
+a factor of 3.4 — runs counter to the expectation set by an in-memory engine
+competing against a disk-backed one.
 
 ### How much of FalkorDB's lead is the engine? Less than it looks
 
@@ -669,7 +657,7 @@ is not like-for-like on Kuzu. It is also why Kuzu's filtered lookup (1.70 ms)
 beating Neo4j's indexed one (6.29 ms) is a columnar-scan result, not an index
 result.
 
-## Benchmarking crimes this harness does not commit
+## Methodology errors avoided, and where each was first documented
 
 Every row is a real, published, promoted graph-database benchmark.
 
@@ -686,7 +674,7 @@ Every row is a real, published, promoted graph-database benchmark.
 
 ---
 
-## Reproducing
+## Reproducing these results
 
 Requires Docker (or Colima) and `uv`. Free-tier accounts for CognoDB and Neo4j
 Aura are needed only for Arm B.
@@ -705,7 +693,7 @@ No connection URI or password appears anywhere in this repository.
 and is gitignored. A target whose variables are unset is skipped with an
 explanation printed, never run against a placeholder.
 
-## Licence
+## Licence and attribution
 
 MIT — see [LICENSE](LICENSE).
 

@@ -242,27 +242,31 @@ _A trivial round trip against a freshly started engine holding no data, against 
 
 ## Charts
 
-### Latency capped
+### Latency by workload — Arm A, identical cgroup limits
 
-![Latency capped](charts/latency-capped.png)
+![Latency by workload — Arm A, identical cgroup limits](charts/latency-capped.png)
 
-### Latency managed
+### Latency by workload — Arm B, managed free tiers
 
-![Latency managed](charts/latency-managed.png)
+![Latency by workload — Arm B, managed free tiers](charts/latency-managed.png)
 
-### Memory sweep
+### Latency against the container memory limit
 
-![Memory sweep](charts/memory-sweep.png)
+![Latency against the container memory limit](charts/memory-sweep.png)
 
-### Concurrency
+### Sustained throughput against concurrency — Arm A
 
-![Concurrency](charts/concurrency.png)
+![Sustained throughput against concurrency — Arm A](charts/concurrency-capped.png)
 
-### Network split
+### Sustained throughput against concurrency — Arm B
 
-![Network split](charts/network-split.png)
+![Sustained throughput against concurrency — Arm B](charts/concurrency-managed.png)
 
-### Warmup
+### Server execution time versus network time
 
-![Warmup](charts/warmup.png)
+![Server execution time versus network time](charts/network-split.png)
+
+### Warm-up curves
+
+![Warm-up curves](charts/warmup.png)
 

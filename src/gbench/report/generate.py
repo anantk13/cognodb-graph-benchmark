@@ -83,6 +83,14 @@ class Record:
         return None
 
 
+def _tier_bytes(tier: str | None) -> int:
+    """Tier ordered by the size it denotes. Lexical order puts 512m after 2g."""
+    if not tier:
+        return 0
+    value = tier.strip().lower()
+    return int(value[:-1]) * (1 << 30 if value.endswith("g") else 1 << 20)
+
+
 def load_records(raw_dir: Path) -> list[Record]:
     """Read every result file from the most recent run directory."""
     runs = sorted((p for p in raw_dir.iterdir() if p.is_dir()), reverse=True)
@@ -291,106 +299,120 @@ def table_dnf(records: list[Record]) -> str:
 
 
 def render_charts(records: list[Record], out_dir: Path) -> list[Path]:
-    """Render every chart the README embeds, skipping ones with no data.
+    """Render every chart the report embeds.
 
-    A chart with one series missing is still worth drawing -- a DNF is drawn as
-    a labelled gap, never as a zero -- but a chart with no series at all is
-    skipped rather than emitted empty.
+    Each chart takes one series per engine. An earlier version passed one per
+    engine-and-tier, which put three same-coloured bars side by side because
+    colour encodes the engine while the label carried the tier. Latency is flat
+    across tiers, so the tier comparison lives only in the memory sweep.
     """
     from gbench.report import charts
 
     charts_dir = out_dir / "charts"
     charts_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
-
     live = [r for r in records if not r.dnf and not r.errored]
 
-    # Latency across workloads, one chart per arm. Arms are never combined:
-    # a container on loopback and a managed instance 240 ms away do not belong
-    # on one axis, and putting them there invites exactly the comparison the
-    # round-trip floor exists to prevent.
-    for arm, title in (
-        ("capped", "Arm A — identical cgroup limits, no network"),
-        ("managed", "Arm B — managed free tiers, network in the path"),
+    def arm_of(record: Record) -> str:
+        return (record.data.get("target") or {}).get("arm", "")
+
+    def one_per_engine(arm: str) -> list[Record]:
+        """The largest tier at which each engine of `arm` completed."""
+        best: dict[str, Record] = {}
+        for record in live:
+            if arm_of(record) != arm:
+                continue
+            current = best.get(record.target_id)
+            if current is None or _tier_bytes(record.tier) > _tier_bytes(current.tier):
+                best[record.target_id] = record
+        return [best[k] for k in sorted(best)]
+
+    # Latency, one chart per arm. The arms never share an axis: a container on
+    # loopback and an instance 240 ms away are not comparable on client latency.
+    for arm, title, subtitle in (
+        (
+            "capped",
+            "Arm A — every engine under identical cgroup limits",
+            "0.5 vCPU, no network in the path. Each bar is the largest tier at\n"
+            "which that engine ran.",
+        ),
+        (
+            "managed",
+            "Arm B — managed free tiers, over the network",
+            "Not resource-equal. These latencies are dominated by round-trip\n"
+            "time; see the network split below.",
+        ),
     ):
         rows = [
             (
-                r.label,
                 r.target_id,
                 {
-                    w: (r.workload(w) or {}).get("client", {}).get("p50_ms", 0.0)
+                    w: (r.workload(w) or {}).get("client", {}).get("p50_ms")
                     for w in WORKLOAD_ORDER
+                    if (r.workload(w) or {}).get("client")
                 },
             )
-            for r in live
-            if (r.data.get("target") or {}).get("arm") == arm
+            for r in one_per_engine(arm)
         ]
+        rows = [(engine, values) for engine, values in rows if values]
         if rows:
             written.append(
-                charts.latency_by_workload(rows, charts_dir / f"latency-{arm}.png", title=title)
+                charts.latency_by_workload(
+                    rows, charts_dir / f"latency-{arm}.png", title=title, subtitle=subtitle
+                )
             )
 
-    # Memory sweep: p50 of the three-hop traversal against the cap. A tier the
-    # engine could not start at is a gap labelled DNF.
-    # Tiers are ordered by the size they denote, not lexically and not by the
-    # order results happened to be written. Both of those put 512m after 2g,
-    # and because the plotted points came from file order while the axis labels
-    # came from a separate sort, the DNF marker landed under the wrong tier.
-    def tier_bytes(tier: str) -> int:
-        value = tier.strip().lower()
-        return int(value[:-1]) * (1 << 30 if value.endswith("g") else 1 << 20)
-
-    tiers = sorted({r.tier for r in records if r.tier}, key=tier_bytes)
-    by_target: dict[str, dict[str, float | None]] = {}
+    # Memory sweep: the one chart where tiers are the point.
+    tiers = sorted({r.tier for r in records if r.tier}, key=_tier_bytes)
+    by_engine: dict[str, dict[str, float | None]] = {}
     for record in records:
         if not record.tier:
             continue
         entry = record.workload("hop3") if not record.dnf else None
         value = (entry or {}).get("client", {}).get("p50_ms") if entry else None
-        by_target.setdefault(record.target_id, {})[record.tier] = value
-
-    # One point per tier per target, in tier order, so the x positions the
-    # DNF markers are drawn at match the ones the lines are drawn at.
-    sweep: dict[str, list[tuple[str, float | None]]] = {
-        target: [(tier, values.get(tier)) for tier in tiers]
-        for target, values in by_target.items()
-    }
-    if sweep and len(tiers) > 1:
+        by_engine.setdefault(record.target_id, {})[record.tier] = value
+    if by_engine and len(tiers) > 1:
+        sweep = {
+            engine: [(tier, values.get(tier)) for tier in tiers]
+            for engine, values in sorted(by_engine.items())
+        }
         written.append(charts.memory_sweep(sweep, charts_dir / "memory-sweep.png"))
 
-    # Concurrency: sustained throughput against client count.
-    concurrency: dict[str, list[tuple[int, float]]] = {}
-    for record in live:
-        points = [(lv["clients"], lv["qps"]) for lv in record.data.get("concurrency") or []]
+    # Concurrency, one chart per arm, for the same reason as latency.
+    for arm, title in (
+        ("capped", "Arm A — sustained throughput at 0.5 vCPU (90% reads)"),
+        ("managed", "Arm B — sustained throughput on the managed free tiers (90% reads)"),
+    ):
+        points = {
+            r.target_id: [(lv["clients"], lv["qps"]) for lv in r.data.get("concurrency") or []]
+            for r in one_per_engine(arm)
+        }
+        points = {k: v for k, v in points.items() if v}
         if points:
-            concurrency[record.label] = points
-    if concurrency:
-        written.append(charts.concurrency(concurrency, charts_dir / "concurrency.png"))
+            written.append(
+                charts.concurrency(points, charts_dir / f"concurrency-{arm}.png", title=title)
+            )
 
-    # Where the time went: server execution against everything else. Only
-    # meaningful for targets that report their own execution time.
+    # Where the time went. Managed targets only: in the capped arm that
+    # component is loopback plus driver overhead, and calling it network in a
+    # chart about network cost would be misleading.
     split = []
-    for record in live:
-        # Managed targets only. In the capped arm the "network" component is
-        # loopback plus driver overhead, and labelling that as network in a
-        # chart about network cost would be actively misleading.
-        if (record.data.get("target") or {}).get("arm") != "managed":
-            continue
+    for record in one_per_engine("managed"):
         entry = record.workload("point_lookup")
         if not entry or not entry.get("server") or not entry.get("client"):
             continue
         server = entry["server"]["p50_ms"]
         client = entry["client"]["p50_ms"]
-        split.append((record.label, server, max(0.0, client - server)))
+        split.append((record.target_id, server, max(0.0, client - server)))
     if split:
         written.append(charts.network_split(split, charts_dir / "network-split.png"))
 
     # Warm-up curves, from the samples the runner kept rather than discarded.
     warmup = {}
-    for record in live:
+    for record in one_per_engine("capped"):
         entry = record.workload("hop3")
         if entry and entry.get("warmup_ms"):
-            warmup[record.label] = entry["warmup_ms"]
+            warmup[record.target_id] = entry["warmup_ms"]
     if warmup:
         written.append(charts.warmup_curve(warmup, charts_dir / "warmup.png"))
 
@@ -400,10 +422,10 @@ def render_charts(records: list[Record], out_dir: Path) -> list[Path]:
 def inject_into_readme(readme: Path, results_md: Path, charts: list[Path]) -> bool:
     """Splice the generated matrix and charts into the README between markers.
 
-    The brief asks for the full results matrix *in* the README, not linked from
-    it -- a reader who only opens the README must see every metric. Keeping it
-    generated rather than pasted means it cannot drift from the run that
-    produced it.
+    Section 6 of the brief asks for the full results matrix *in* the README,
+    not linked from it -- a reader who opens only the README must see every
+    metric. Generating it rather than pasting means it cannot drift from the
+    run that produced it.
     """
     start, end = "<!-- RESULTS:START -->", "<!-- RESULTS:END -->"
     text = readme.read_text()
@@ -414,10 +436,15 @@ def inject_into_readme(readme: Path, results_md: Path, charts: list[Path]) -> bo
     body = body.split("\n", 2)[2] if body.startswith("<!--") else body
     body = body.replace("](charts/", "](results/charts/")
 
-    gallery = "\n".join(
-        f"![{p.stem.replace('-', ' ')}](results/charts/{p.name})\n" for p in charts
+    # Demote every heading one level. The standalone RESULTS.md is its own
+    # document with h1/h2; spliced under "## Results" those same headings would
+    # read as peers of the section containing them.
+    body = "\n".join(
+        ("#" + line) if line.startswith("#") else line for line in body.splitlines()
     )
-    block = f"{start}\n\n{body}\n\n### Charts\n\n{gallery}\n{end}"
+    body = body.replace("## Results\n", "", 1).replace("# # Results", "", 1)
+
+    block = f"{start}\n\n{body}\n{end}"
     readme.write_text(text[: text.index(start)] + block + text[text.index(end) + len(end) :])
     return True
 
@@ -463,10 +490,19 @@ def generate(raw_dir: Path, out_dir: Path) -> Path:
         table_dnf(records),
     ]
 
+    captions = {
+        "latency-capped": "Latency by workload — Arm A, identical cgroup limits",
+        "latency-managed": "Latency by workload — Arm B, managed free tiers",
+        "memory-sweep": "Latency against the container memory limit",
+        "concurrency-capped": "Sustained throughput against concurrency — Arm A",
+        "concurrency-managed": "Sustained throughput against concurrency — Arm B",
+        "network-split": "Server execution time versus network time",
+        "warmup": "Warm-up curves",
+    }
     if rendered:
         sections.append("\n## Charts\n")
         for path in rendered:
-            caption = path.stem.replace("-", " ").capitalize()
+            caption = captions.get(path.stem, path.stem.replace("-", " ").capitalize())
             sections.append(f"### {caption}\n\n![{caption}](charts/{path.name})\n")
 
     sections.append("")
