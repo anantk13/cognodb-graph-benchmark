@@ -466,8 +466,6 @@ main strong {{ font-weight: 600; }}
 .src {{ font-family: var(--mono); font-size: 12.5px; color: var(--ink3); margin: 24px 0 0;
   word-break: break-all; }}
 
-footer {{ margin-top: 84px; padding-top: 24px; border-top: 2px solid var(--ink);
-  font-family: var(--mono); font-size: 12.5px; color: var(--ink3); line-height: 1.8; }}
 @media (prefers-reduced-motion: reduce) {{ * {{ transition: none !important; }} }}
 </style>
 </head>
@@ -496,14 +494,6 @@ footer {{ margin-top: 84px; padding-top: 24px; border-top: 2px solid var(--ink);
   </main>
 </div>
 
-<footer>
-  <div>This page is generated from the repository's README by <code>make site</code>, whose
-  results tables are themselves generated from the raw per-iteration output. The page, the
-  repository and the raw data cannot disagree.</div>
-  <div>Dataset © ICIJ — ODbL 1.0 (database), CC BY-SA 3.0 (contents). Harness MIT-licensed, so any
-  vendor measured here can re-run it.</div>
-  <div><a href="{repo}">{repo}</a></div>
-</footer>
 
 </div>
 
