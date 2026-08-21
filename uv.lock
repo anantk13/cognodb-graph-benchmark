@@ -180,6 +180,7 @@ source = { editable = "." }
 dependencies = [
     { name = "falkordb" },
     { name = "kuzu" },
+    { name = "markdown" },
     { name = "matplotlib" },
     { name = "neo4j" },
     { name = "numpy" },
@@ -198,6 +199,7 @@ dev = [
 requires-dist = [
     { name = "falkordb", specifier = "==1.2.0" },
     { name = "kuzu", specifier = "==0.7.1" },
+    { name = "markdown", specifier = "==3.7" },
     { name = "matplotlib", specifier = "==3.10.0" },
     { name = "neo4j", specifier = "==5.28.1" },
     { name = "numpy", specifier = "==2.2.2" },
@@ -350,6 +352,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0c/69/7c35953b600fa6ac9fa3dfea01aaec4baabefdf1fc98fc6c1f60f02916c2/kuzu-0.7.1-cp313-cp313-win_amd64.whl", hash = "sha256:3b5e8bffa080c7d121480e7d9040cfb352f6c29c85140ebf284ae663c21db7ca", size = 4016016, upload-time = "2024-12-20T06:11:15.649Z" },
     { url = "https://files.pythonhosted.org/packages/13/9f/e5537cb4da939e46747ae02a6cae17add5c1c82a80fcac19637e8a4c2789/kuzu-0.7.1-cp313-cp313t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:eeb3d9a172c5b1ac3281e70a7debcbd26ceef3dd869299253c3083dd23542ed2", size = 5849252, upload-time = "2024-12-20T06:11:20.336Z" },
     { url = "https://files.pythonhosted.org/packages/f0/b8/1f49989e7ec11e71cfb218ed978c81e2ea1bd207a3c4d1371abe881ba13f/kuzu-0.7.1-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c129bd054876380a00fca17896f5d695bc1f32cfcab1642fec9c8dee5f7084cb", size = 6569681, upload-time = "2024-12-20T06:11:24.27Z" },
+]
+
+[[package]]
+name = "markdown"
+version = "3.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/54/28/3af612670f82f4c056911fbbbb42760255801b3068c48de792d354ff4472/markdown-3.7.tar.gz", hash = "sha256:2ae2471477cfd02dbbf038d5d9bc226d40def84b4fe2986e49b59b6b472bbed2", size = 357086, upload-time = "2024-08-16T15:55:17.812Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/08/83871f3c50fc983b88547c196d11cf8c3340e37c32d2e9d6152abe2c61f7/Markdown-3.7-py3-none-any.whl", hash = "sha256:7eb6df5690b81a1d7942992c97fad2938e956e79df20cbc6186e9c3a77b1c803", size = 106349, upload-time = "2024-08-16T15:55:16.176Z" },
 ]
 
 [[package]]

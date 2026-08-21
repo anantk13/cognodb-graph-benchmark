@@ -31,7 +31,34 @@ body {
   font-family: var(--sans); font-size: 17px; line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
-.wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(20px,5vw,48px) 96px; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) 96px; }
+.layout { display: block; }
+@media (min-width: 1080px) {
+  .layout { display: grid; grid-template-columns: 244px minmax(0,1fr); gap: 56px;
+    align-items: start; }
+}
+
+/* Contents. Sticky beside the content on wide screens, hidden below 1080px
+   where the column would crowd the tables rather than help. */
+.toc { display: none; }
+@media (min-width: 1080px) {
+  .toc { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px);
+    overflow-y: auto; padding: 4px 0 24px; border-right: 1px solid var(--rule);
+    margin-right: -24px; padding-right: 24px; }
+}
+.toc-h { font-family: var(--mono); font-size: 10.5px; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--ink3); margin: 0 0 12px; }
+.toc a { display: block; text-decoration: none; color: var(--ink2); line-height: 1.4;
+  border-left: 2px solid transparent; }
+.toc a:hover { color: var(--ink); }
+.toc .n2 { font-size: 14px; font-weight: 600; padding: 7px 0 7px 12px; margin-top: 4px; }
+.toc .n3 { font-size: 13px; padding: 4px 0 4px 22px; color: var(--ink3); }
+.toc a.on { color: var(--accent); border-left-color: var(--accent); }
+.toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+main :is(h2,h3) { scroll-margin-top: 20px; }
 .col { max-width: 68ch; }
 a { color: var(--accent); text-underline-offset: 2px; }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -72,6 +99,15 @@ tbody th, tbody td { padding: 10px 14px; border-bottom: 1px solid var(--rule); }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 tbody tr:nth-child(even) { background: var(--panel); }
 .num { text-align: right; font-family: var(--mono); font-size: 13px; }
+/* Numeric columns are centred rather than right-aligned. Markdown emits
+   text-align:right for them, which pushes a short value like 8,121 to the far
+   edge of a wide header like "Relationships/s" and reads as disconnected from
+   the column it belongs to. Centring puts each value under its own heading.
+   Tabular figures keep the digits a consistent width so the column still
+   scans vertically. */
+main th[style*="right"], main td[style*="right"] { text-align: center !important; }
+main table { font-variant-numeric: tabular-nums; }
+main td[style*="right"] { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
 .dnf { color: var(--bad); font-family: var(--mono); font-size: 12.5px; font-weight: 600; }
 .muted { color: var(--ink3); }
 
@@ -82,6 +118,26 @@ figcaption { font-size: 14px; color: var(--ink3); margin-top: 10px; line-height:
 .note { border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; margin: 24px 0;
   max-width: 68ch; }
 .note.warn { border-color: var(--warn); }
+
+main { padding-top: 8px; }
+main h2 { font-size: clamp(23px,3.2vw,32px); line-height: 1.15; letter-spacing: -.02em;
+  font-weight: 700; margin: 68px 0 10px; text-wrap: balance;
+  padding-top: 22px; border-top: 1px solid var(--rule); }
+main h2:first-of-type { border-top: 0; }
+main h3 { font-size: 20px; font-weight: 600; margin: 40px 0 10px; letter-spacing: -.012em; }
+main h4 { font-size: 16.5px; font-weight: 600; margin: 30px 0 8px; color: var(--ink2); }
+main p, main li { max-width: 74ch; }
+main ul, main ol { padding-left: 1.35em; }
+main li { margin-bottom: .4em; }
+main hr { border: 0; border-top: 1px solid var(--rule); margin: 52px 0 0; }
+main blockquote { border-left: 3px solid var(--accent); margin: 22px 0; padding: 2px 0 2px 18px;
+  color: var(--ink2); }
+main pre { background: var(--panel); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+main pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+main strong { font-weight: 600; }
+.src { font-family: var(--mono); font-size: 12.5px; color: var(--ink3); margin: 24px 0 0;
+  word-break: break-all; }
 
 footer { margin-top: 84px; padding-top: 24px; border-top: 2px solid var(--ink);
   font-family: var(--mono); font-size: 12.5px; color: var(--ink3); line-height: 1.8; }
@@ -99,96 +155,3778 @@ footer { margin-top: 84px; padding-top: 24px; border-top: 2px solid var(--ink);
   resource envelope every other engine is held to. Every figure below is generated from raw
   per-iteration data; none is typed by hand.</p>
   <div class="tiles"><div class="tile"><div class="tile-v">161,236</div><div class="tile-k">nodes</div><div class="tile-n">ICIJ Paradise Papers — Appleby</div></div><div class="tile"><div class="tile-v">381,523</div><div class="tile-k">relationships</div><div class="tile-n">loaded identically into every target</div></div><div class="tile"><div class="tile-v">255×</div><div class="tile-k">ingest spread</div><div class="tile-n">FalkorDB against Kuzu</div></div><div class="tile"><div class="tile-v">0.0 ms</div><div class="tile-k">CognoDB server time</div><div class="tile-n">on all seven workloads — under Bolt&#x27;s resolution</div></div><div class="tile"><div class="tile-v">238 ms</div><div class="tile-k">round-trip floor</div><div class="tile-n">of which 0.2 ms was the database</div></div><div class="tile"><div class="tile-v">3</div><div class="tile-k">independent runs</div><div class="tile-n">median coefficient of variation 0.024</div></div></div>
+  <p class="src">Full harness, raw results and reproduction instructions:
+  <a href="https://github.com/anantk13/cognodb-graph-benchmark">https://github.com/anantk13/cognodb-graph-benchmark</a></p>
 </header>
 
-<section>
-  <h2>Ingest</h2>
-  <p class="sub">Driver batching at an identical batch size on every target. Each engine's faster
-  native loader was deliberately not used: the managed targets have no equivalent, so a column
-  mixing four mechanisms would compare nothing.</p>
-  <div class="tw"><table><thead><tr><th scope="col">Target</th><th scope="col">Relationships/s</th><th scope="col">Nodes/s</th><th scope="col">Wall clock</th></tr></thead><tbody><tr><th scope="row">falkordb @ 2g</th><td class="num">84,979</td><td class="num">35,913</td><td class="num">4 s</td></tr><tr><th scope="row">falkordb @ 1g</th><td class="num">83,181</td><td class="num">35,153</td><td class="num">5 s</td></tr><tr><th scope="row">falkordb @ 512m</th><td class="num">80,903</td><td class="num">34,191</td><td class="num">5 s</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td class="num">8,321</td><td class="num">3,516</td><td class="num">46 s</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td class="num">7,269</td><td class="num">3,072</td><td class="num">52 s</td></tr><tr><th scope="row">neo4j-aura-free</th><td class="num">4,194</td><td class="num">1,773</td><td class="num">91 s</td></tr><tr><th scope="row">memgraph @ 2g</th><td class="num">2,686</td><td class="num">1,135</td><td class="num">142 s</td></tr><tr><th scope="row">memgraph @ 1g</th><td class="num">2,535</td><td class="num">1,071</td><td class="num">151 s</td></tr><tr><th scope="row">memgraph @ 512m</th><td class="num">2,502</td><td class="num">1,057</td><td class="num">152 s</td></tr><tr><th scope="row">cognodb-c0</th><td class="num">1,999</td><td class="num">845</td><td class="num">191 s</td></tr><tr><th scope="row">kuzu</th><td class="num">318</td><td class="num">134</td><td class="num">1,201 s</td></tr><tr><th scope="row">neo4j-community @ 512m</th><td class="dnf" colspan="3">DNF — out of memory</td></tr></tbody></table></div>
-</section>
-
-<section>
-  <h2>Latency — Arm A, identical cgroup limits</h2>
-  <p class="sub">Every engine in a container capped at CognoDB c0's advertised specification, with
-  no network in the path. p50 in milliseconds. The enforced <code>cpu.max</code> and
-  <code>memory.max</code> were read from inside each running container and recorded.</p>
-  <div class="tw"><table><thead><tr><th scope="col">Target</th><th>Point lookup</th><th>Filtered lookup (indexed)</th><th>1-hop traversal</th><th>2-hop traversal</th><th>3-hop traversal</th><th>Aggregation (group-by)</th><th>Write (indexed update)</th></tr></thead><tbody><tr><th scope="row">falkordb @ 1g</th><td class="num">0.43</td><td class="num">2.46</td><td class="num">0.44</td><td class="num">0.50</td><td class="num">3.08</td><td class="num">3.29</td><td class="num">0.44</td></tr><tr><th scope="row">falkordb @ 2g</th><td class="num">0.41</td><td class="num">2.46</td><td class="num">0.45</td><td class="num">0.53</td><td class="num">3.08</td><td class="num">3.25</td><td class="num">0.43</td></tr><tr><th scope="row">falkordb @ 512m</th><td class="num">0.43</td><td class="num">2.51</td><td class="num">0.45</td><td class="num">0.54</td><td class="num">3.13</td><td class="num">3.30</td><td class="num">0.43</td></tr><tr><th scope="row">kuzu</th><td class="num">0.16</td><td class="num">1.74</td><td class="num">0.62</td><td class="num">47.66</td><td class="num">50.74</td><td class="num">0.97</td><td class="num">0.28</td></tr><tr><th scope="row">memgraph @ 1g</th><td class="num">0.40</td><td class="num">5.62</td><td class="num">0.46</td><td class="num">1.41</td><td class="num">9.31</td><td class="num">11.87</td><td class="num">0.42</td></tr><tr><th scope="row">memgraph @ 2g</th><td class="num">0.41</td><td class="num">5.55</td><td class="num">0.47</td><td class="num">1.39</td><td class="num">9.27</td><td class="num">11.53</td><td class="num">0.42</td></tr><tr><th scope="row">memgraph @ 512m</th><td class="num">0.40</td><td class="num">5.73</td><td class="num">0.48</td><td class="num">1.50</td><td class="num">9.39</td><td class="num">11.76</td><td class="num">0.43</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td class="num">0.83</td><td class="num">11.36</td><td class="num">0.81</td><td class="num">2.13</td><td class="num">11.55</td><td class="num">3.70</td><td class="num">0.78</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td class="num">0.77</td><td class="num">6.23</td><td class="num">0.74</td><td class="num">1.84</td><td class="num">11.14</td><td class="num">3.53</td><td class="num">0.87</td></tr><tr><th scope="row">neo4j-community @ 512m</th><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td></tr></tbody></table></div>
-
-  <h2>Latency — Arm B, managed free tiers</h2>
-  <p class="sub">Explicitly not resource-equal, and network is in the path. These figures are
-  dominated by round-trip time and should be read alongside the server-execution split below.</p>
-  <div class="tw"><table><thead><tr><th scope="col">Target</th><th>Point lookup</th><th>Filtered lookup (indexed)</th><th>1-hop traversal</th><th>2-hop traversal</th><th>3-hop traversal</th><th>Aggregation (group-by)</th><th>Write (indexed update)</th></tr></thead><tbody><tr><th scope="row">cognodb-c0</th><td class="num">238.26</td><td class="num">310.03</td><td class="num">240.40</td><td class="num">259.91</td><td class="num">739.18</td><td class="num">331.27</td><td class="num">3,871.26</td></tr><tr><th scope="row">neo4j-aura-free</th><td class="num">87.28</td><td class="num">184.61</td><td class="num">87.84</td><td class="num">91.68</td><td class="num">201.64</td><td class="num">97.08</td><td class="num">91.91</td></tr></tbody></table></div>
-
-  <div class="note">
-    <p>CognoDB reported <b>0.0&nbsp;ms of server-side execution on all seven workloads</b>,
-    including the three-hop traversal returning 1,000 rows. Bolt reports server time in whole
-    milliseconds, so this is an upper bound of under 1&nbsp;ms rather than a precise figure — but
-    nothing in this study established an upper bound on its read speed, because nothing it was
-    asked to do took long enough to measure.</p>
-  </div>
-</section>
-
-<section>
-  <h2>Run-to-run variance</h2>
-  <p class="sub">The containerised arm was executed three times. A difference between two engines
-  smaller than either one's own spread is not a difference. Measurements marked ⚠ exceed a
-  coefficient of variation of 0.10 and should not be compared across engines without accounting
-  for the spread. Least stable first.</p>
-  <div class="tw"><table><thead><tr><th scope="col">Target</th><th scope="col">Metric</th><th scope="col">Median</th><th scope="col">Min</th><th scope="col">Max</th><th scope="col">Spread</th><th scope="col">CV</th></tr></thead><tbody><tr><th scope="row">neo4j-community @ 1g</th><td>filtered_lookup p50 ms</td><td class="num">6.33</td><td class="num">6.10</td><td class="num">11.36</td><td class="num">83.1%</td><td class="num">0.375 ⚠</td></tr><tr><th scope="row">memgraph @ 512m</th><td>40-client q/s</td><td class="num">149.73</td><td class="num">147.47</td><td class="num">183.07</td><td class="num">23.8%</td><td class="num">0.125 ⚠</td></tr><tr><th scope="row">falkordb @ 1g</th><td>ingest rels/s</td><td class="num">83,180.98</td><td class="num">69,428.65</td><td class="num">83,463.45</td><td class="num">16.9%</td><td class="num">0.102 ⚠</td></tr><tr><th scope="row">memgraph @ 1g</th><td>40-client q/s</td><td class="num">181.93</td><td class="num">158.23</td><td class="num">190.23</td><td class="num">17.6%</td><td class="num">0.094</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>hop1 p50 ms</td><td class="num">0.81</td><td class="num">0.75</td><td class="num">0.86</td><td class="num">14.7%</td><td class="num">0.074</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td>ingest rels/s</td><td class="num">8,121.32</td><td class="num">7,268.58</td><td class="num">8,323.48</td><td class="num">13.0%</td><td class="num">0.071</td></tr><tr><th scope="row">memgraph @ 512m</th><td>point_lookup p50 ms</td><td class="num">0.40</td><td class="num">0.37</td><td class="num">0.42</td><td class="num">13.0%</td><td class="num">0.066</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td>write_tag p50 ms</td><td class="num">0.79</td><td class="num">0.78</td><td class="num">0.87</td><td class="num">11.7%</td><td class="num">0.063</td></tr><tr><th scope="row">falkordb @ 1g</th><td>point_lookup p50 ms</td><td class="num">0.39</td><td class="num">0.38</td><td class="num">0.43</td><td class="num">11.7%</td><td class="num">0.061</td></tr><tr><th scope="row">falkordb @ 512m</th><td>40-client q/s</td><td class="num">714.87</td><td class="num">667.17</td><td class="num">747.63</td><td class="num">11.3%</td><td class="num">0.057</td></tr><tr><th scope="row">memgraph @ 2g</th><td>40-client q/s</td><td class="num">187.77</td><td class="num">171.20</td><td class="num">190.43</td><td class="num">10.2%</td><td class="num">0.057</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>hop2 p50 ms</td><td class="num">2.00</td><td class="num">1.90</td><td class="num">2.13</td><td class="num">11.4%</td><td class="num">0.057</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>1-client q/s</td><td class="num">241.57</td><td class="num">233.63</td><td class="num">260.63</td><td class="num">11.2%</td><td class="num">0.057</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>point_lookup p50 ms</td><td class="num">0.83</td><td class="num">0.78</td><td class="num">0.87</td><td class="num">10.8%</td><td class="num">0.054</td></tr><tr><th scope="row">falkordb @ 2g</th><td>40-client q/s</td><td class="num">684.83</td><td class="num">651.37</td><td class="num">722.77</td><td class="num">10.4%</td><td class="num">0.052</td></tr><tr><th scope="row">memgraph @ 512m</th><td>hop2 p50 ms</td><td class="num">1.38</td><td class="num">1.37</td><td class="num">1.50</td><td class="num">9.7%</td><td class="num">0.051</td></tr><tr><th scope="row">memgraph @ 2g</th><td>write_tag p50 ms</td><td class="num">0.42</td><td class="num">0.42</td><td class="num">0.46</td><td class="num">8.7%</td><td class="num">0.046</td></tr><tr><th scope="row">memgraph @ 2g</th><td>10-client q/s</td><td class="num">179.97</td><td class="num">167.83</td><td class="num">181.50</td><td class="num">7.6%</td><td class="num">0.042</td></tr><tr><th scope="row">memgraph @ 2g</th><td>point_lookup p50 ms</td><td class="num">0.41</td><td class="num">0.38</td><td class="num">0.41</td><td class="num">7.3%</td><td class="num">0.041</td></tr><tr><th scope="row">memgraph @ 1g</th><td>hop2 p50 ms</td><td class="num">1.41</td><td class="num">1.38</td><td class="num">1.49</td><td class="num">7.9%</td><td class="num">0.041</td></tr></tbody></table></div>
-
-  <div class="note warn">
-    <p><b>One claim did not survive.</b> A single run showed Neo4j's server-side aggregation at
-    2.00&nbsp;ms against FalkorDB's 2.68&nbsp;ms, and an earlier draft stated that Neo4j won it.
-    Across three runs Neo4j measured 2.00, 2.00 and 3.00&nbsp;ms against FalkorDB's 2.68, 2.75 and
-    2.69 — overlapping ranges, with Neo4j slower than FalkorDB's worst in one run. The measurement
-    cannot separate them. The retraction is left visible in the repository rather than deleted.</p>
-  </div>
-</section>
-
-<section>
-  <h2>Charts</h2>
-  <p class="sub">Rendered from the same raw output as the tables. A did-not-finish is drawn as a
-  labelled gap, never as a zero.</p>
-  <figure><img src="charts/concurrency-capped.png" alt="Throughput against concurrency — Arm A" loading="lazy"><figcaption><b>Throughput against concurrency — Arm A</b> — At 0.5 vCPU, extra clients add queueing rather than throughput.</figcaption></figure><figure><img src="charts/concurrency-managed.png" alt="Throughput against concurrency — Arm B" loading="lazy"><figcaption><b>Throughput against concurrency — Arm B</b> — CognoDB becomes CPU-bound where the network alone would allow more.</figcaption></figure><figure><img src="charts/latency-capped.png" alt="Latency by workload — identical cgroup limits" loading="lazy"><figcaption><b>Latency by workload — identical cgroup limits</b> — Arm A. 0.5 vCPU, no network in the path.</figcaption></figure><figure><img src="charts/latency-managed.png" alt="Latency by workload — managed free tiers" loading="lazy"><figcaption><b>Latency by workload — managed free tiers</b> — Arm B. Not resource-equal; dominated by round-trip time.</figcaption></figure><figure><img src="charts/memory-sweep.png" alt="Latency against the memory cap" loading="lazy"><figcaption><b>Latency against the memory cap</b> — Flat across tiers. Only startup depends on memory.</figcaption></figure><figure><img src="charts/network-split.png" alt="Server execution versus network" loading="lazy"><figcaption><b>Server execution versus network</b> — How much of a managed target&#x27;s latency was ever the database.</figcaption></figure><figure><img src="charts/warmup.png" alt="Warm-up curves" loading="lazy"><figcaption><b>Warm-up curves</b> — Published rather than assumed; discarded from the percentiles.</figcaption></figure>
-</section>
-
-<section>
-  <h2>Method, in short</h2>
-  <div class="col">
-    <h3>Two arms, both anchored on CognoDB's specification</h3>
-    <p>Of seven managed graph platforms surveyed, two still offer a free tier that survives a week,
-    and those span 100&nbsp;MB to 4&nbsp;GB. Equal resources across managed free tiers is therefore
-    not achievable. Arm&nbsp;A imposes CognoDB c0's envelope on every other engine via cgroups;
-    Arm&nbsp;B measures the managed tiers as shipped. The two are reported separately and never
-    averaged.</p>
-
-    <h3>The network is separated from the database</h3>
-    <p>Bolt returns server-side execution time independently of what the client observed, and a
-    warmed round-trip floor bounds each target. A <code>RETURN 1</code> against CognoDB costs
-    238&nbsp;ms client-side and 0&nbsp;ms server-side.</p>
-
-    <h3>1,000 iterations, p50 and p95, no p99</h3>
-    <p>A distribution-free confidence interval for p95 is unbounded below n&nbsp;=&nbsp;110, so the
-    commonly suggested 100 iterations yields a p95 with no error bar. The latency client is
-    closed-loop, which distorts p99 by 20× or worse, so no p99 is published from it.</p>
-
-    <h3>Failures are results</h3>
-    <p>Neo4j is OOM-killed at 512&nbsp;MB and that is published as a DNF with its exit code, not
-    omitted. Row counts are compared across targets on every workload — a check that caught four
-    real defects, including one genuine semantic divergence between two Cypher engines, none of
-    which was visible from latency alone.</p>
-  </div>
-</section>
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-h">Contents</p>
+    <a class="n2" href="#summary-of-findings">Summary of findings</a><a class="n2" href="#databases-under-test">Databases under test</a><a class="n2" href="#dataset">Dataset</a><a class="n2" href="#workloads-and-query-design">Workloads and query design</a><a class="n2" href="#results">Results</a><a class="n3" href="#targets-and-their-advertised-specifications">Targets and their advertised specifications</a><a class="n3" href="#ingest">Ingest</a><a class="n3" href="#latency-by-workload">Latency by workload</a><a class="n3" href="#mixed-workload-sustained-throughput">Mixed workload -- sustained throughput</a><a class="n3" href="#cold-start-versus-steady-state">Cold start versus steady state</a><a class="n3" href="#footprint">Footprint</a><a class="n3" href="#failures-and-did-not-finish">Failures and did-not-finish</a><a class="n3" href="#run-to-run-variance">Run-to-run variance</a><a class="n3" href="#charts">Charts</a><a class="n2" href="#cognodb-cloud-c0-in-detail">CognoDB Cloud c0 in detail</a><a class="n2" href="#analysis">Analysis</a><a class="n3" href="#ingest-the-260-spread-is-a-durability-decision-not-a-speed-contest">Ingest: the 260× spread is a durability decision, not a speed contest</a><a class="n3" href="#traversals-kuzu-inverts-the-ranking-and-that-is-the-most-informative-result">Traversals: Kuzu inverts the ranking, and that is the most informative result</a><a class="n3" href="#how-much-of-falkordbs-lead-is-the-engine-less-than-it-looks">How much of FalkorDB&#x27;s lead is the engine? Less than it looks</a><a class="n3" href="#memory-not-the-binding-constraint-and-the-sweep-says-so">Memory: not the binding constraint, and the sweep says so</a><a class="n3" href="#concurrency-two-overload-philosophies-not-one-ranking">Concurrency: two overload philosophies, not one ranking</a><a class="n3" href="#the-managed-arm-measures-the-network-until-it-doesnt">The managed arm measures the network, until it doesn&#x27;t</a><a class="n3" href="#cognodbs-own-metrics-the-footprint-row-filled-in">CognoDB&#x27;s own metrics — the footprint row, filled in</a><a class="n3" href="#what-indexes-existed-on-every-platform">What indexes existed, on every platform</a><a class="n2" href="#methodology-errors-avoided-and-where-each-was-first-documented">Methodology errors avoided, and where each was first documented</a>
+  </nav>
+  <main>
+<p>CognoDB Cloud's free tier is the subject of this study and the yardstick for
+its experimental design. Its advertised specification — <strong>0.5 vCPU, 512 MB
+RAM, 1 GiB disk</strong> — is the resource envelope every other engine here is held
+to, and the question the benchmark asks is what a graph database can and cannot
+do inside it.</p>
+<p>Four other engines are measured against that envelope on one dataset, one set
+of workloads, and one client, with the network separated from the database
+rather than folded into it.</p>
+<p><strong>Every number in <a href="https://github.com/anantk13/cognodb-graph-benchmark/blob/main/results/RESULTS.md"><code>results/RESULTS.md</code></a> is generated by
+<code>make report</code> from raw per-iteration data. None is typed by hand.</strong></p>
+<hr>
+<h2 id="summary-of-findings">Summary of findings</h2>
+<p>Four findings, in order of significance. The brief states that the evaluation
+is of methodology rather than of which database wins, and no result below is
+ordered to favour any engine.</p>
+<p>The containerised arm was executed <strong>three times</strong>; medians and run-to-run
+spread are published for all 99 repeated measurements. One claim from the first
+run — that Neo4j beat FalkorDB on aggregation — did not survive and has been
+retracted in the <a href="#analysis">analysis</a> rather than removed.</p>
+<h3 id="1-the-managed-graph-database-free-tier-is-nearly-extinct">1. The managed graph database free tier is nearly extinct</h3>
+<p>Of seven managed graph platforms surveyed in August 2026, <strong>two still offer a
+free tier that survives a week.</strong> The rest are 14-day trials that delete your
+data, or — in TigerGraph's case — were withdrawn in November 2024.</p>
+<p>That is not a preamble to the benchmark. It is the reason the benchmark is
+shaped the way it is: "run every platform's free tier on equal resources" is
+not a thing that can be done, because the tiers that exist span 100 MB to 4 GB
+and most of them expire before you finish measuring.</p>
+<h3 id="2-ingest-differs-by-260-on-identical-hardware-and-an-identical-method">2. Ingest differs by 260×, on identical hardware and an identical method</h3>
+<p>Every engine loaded the same 161,236 nodes and 381,523 relationships by driver
+batching at the same batch size, under the same 0.5 vCPU cgroup cap:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Engine</th>
+<th style="text-align: right;">Relationships/s</th>
+<th style="text-align: right;">Wall clock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FalkorDB</td>
+<td style="text-align: right;"><strong>84,196</strong></td>
+<td style="text-align: right;">5 s</td>
+</tr>
+<tr>
+<td>Neo4j Community</td>
+<td style="text-align: right;">8,121</td>
+<td style="text-align: right;">47 s</td>
+</tr>
+<tr>
+<td>Neo4j AuraDB Free</td>
+<td style="text-align: right;">4,194</td>
+<td style="text-align: right;">91 s</td>
+</tr>
+<tr>
+<td>Memgraph</td>
+<td style="text-align: right;">2,686</td>
+<td style="text-align: right;">142 s</td>
+</tr>
+<tr>
+<td>CognoDB c0</td>
+<td style="text-align: right;">1,999</td>
+<td style="text-align: right;">191 s</td>
+</tr>
+<tr>
+<td>Kuzu</td>
+<td style="text-align: right;">320</td>
+<td style="text-align: right;">1,193 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>FalkorDB is 31× Memgraph and 10× Neo4j Community. Kuzu, at the other end,
+commits and flushes on every batch — 20 minutes for a graph FalkorDB ingests
+in five seconds. Each engine's own faster bulk loader is documented as
+measured-but-not-used; the managed targets have no equivalent, so an ingest
+column mixing four mechanisms would compare nothing.</p>
+<h3 id="3-at-cognodbs-own-free-tier-size-most-graph-engines-will-not-start">3. At CognoDB's own free-tier size, most graph engines will not start</h3>
+<p>CognoDB c0 advertises 512 MB. Put four other engines in a container with that
+same limit and watch what happens:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Engine at 512 MB</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Neo4j 5.26 Community</td>
+<td><strong>OOM-killed</strong> (exit 137)</td>
+</tr>
+<tr>
+<td>Memgraph, vendor's recommended <code>memgraph-mage</code> image</td>
+<td><strong>OOM-killed</strong> (exit 137)</td>
+</tr>
+<tr>
+<td>Memgraph, slim <code>memgraph</code> image</td>
+<td>boots, serving in ~10 s</td>
+</tr>
+<tr>
+<td>FalkorDB</td>
+<td>boots, serving in ~5 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>Neo4j's final log line before the kernel kills it is <code>Started.</code> A readiness
+check that trusted the log would have recorded a dead container as a healthy
+target.</p>
+<h3 id="4-cognodbs-engine-time-is-below-measurement-resolution-its-observed-latency-is-network-then-cpu">4. CognoDB's engine time is below measurement resolution; its observed latency is network, then CPU</h3>
+<p><strong>CognoDB reported 0.0 ms of server-side execution on all seven workloads</strong>,
+including the three-hop traversal returning 1,000 rows. Bolt reports server
+time in whole milliseconds, so this is an upper bound of under 1 ms rather than
+a precise figure — but it means the engine completed every workload in this
+study below the protocol's reporting resolution.</p>
+<p>The observed latency is therefore almost entirely elsewhere. A point lookup
+costs 238.3 ms against a 238.1 ms round-trip floor: <strong>0.2 ms attributable to
+the database.</strong> Neo4j AuraDB Free, by comparison, reports 1–8 ms of server time
+against an 87 ms floor.</p>
+<p>Concurrency tells a different story, and a more useful one:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align: right;">1 client</th>
+<th style="text-align: right;">10</th>
+<th style="text-align: right;">40</th>
+<th style="text-align: right;">RTT floor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CognoDB c0</td>
+<td style="text-align: right;">0.7 q/s</td>
+<td style="text-align: right;">9.5</td>
+<td style="text-align: right;"><strong>19.4</strong></td>
+<td style="text-align: right;">238 ms</td>
+</tr>
+<tr>
+<td>Neo4j AuraDB Free</td>
+<td style="text-align: right;">8 q/s</td>
+<td style="text-align: right;">76</td>
+<td style="text-align: right;"><strong>264</strong></td>
+<td style="text-align: right;">87 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>At 238 ms, forty clients could theoretically sustain ~168 q/s. CognoDB
+delivered 19.4. <strong>At concurrency it stops being network-bound and the 0.5 vCPU
+shows.</strong> Aura reached 264 against a ~460 ceiling. So the honest version of this
+finding is narrower than it first appears: the network dominates the
+single-client numbers completely, and ceases to dominate as soon as the
+instance is placed under load.</p>
+<hr>
+<h2 id="databases-under-test">Databases under test</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Database</th>
+<th>Storage architecture</th>
+<th>Where it ran</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CognoDB c0</strong></td>
+<td>not disclosed</td>
+<td>managed free tier, <code>us-east4</code> — <strong>the subject, and the resource target for Arm A</strong></td>
+</tr>
+<tr>
+<td><strong>Neo4j</strong></td>
+<td>native pointer-chasing</td>
+<td>AuraDB Free <code>us-central1</code>, and 5.26 Community in a container</td>
+</tr>
+<tr>
+<td><strong>Memgraph</strong></td>
+<td>in-memory, C++</td>
+<td>container</td>
+</tr>
+<tr>
+<td><strong>FalkorDB</strong></td>
+<td>sparse matrix / GraphBLAS</td>
+<td>container</td>
+</tr>
+<tr>
+<td><strong>Kuzu</strong></td>
+<td>embedded, columnar</td>
+<td>in-process — <em>reported separately</em></td>
+</tr>
+</tbody>
+</table></div>
+<p>CognoDB is Bolt-compatible and speaks Cypher, so the four comparison engines
+were chosen from the same family. That is the argument, not a shortcut:
+holding the query language constant isolates storage architecture as the
+variable, and it means the queries sent to CognoDB are byte-identical to those
+sent to every other target. A set that
+mixed in AQL or GSQL would have made "are these really the same query?" a
+matter of judgement instead of a matter of <code>diff</code>.</p>
+<h3 id="databases-considered-and-excluded">Databases considered and excluded</h3>
+<p>The brief scores database <em>selection</em>, so the reasoning for leaving one out
+belongs in the record as much as the reasoning for putting one in.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Excluded</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TigerGraph</strong></td>
+<td>Free tier cluster offering removed November 2024; only time-boxed credits remain, and the smallest workspace is 2 vCPU / 16 GiB at an hourly rate. Community Edition is self-hostable but ships a ~2.5 GB image, is single-server only, and exposes openCypher only embedded inside GSQL.</td>
+</tr>
+<tr>
+<td><strong>ArangoDB</strong></td>
+<td>Rebranded to <code>arango.ai</code>; the documentation site returns 403 to automated fetches and pricing is now quote-only, so current trial terms could not be established from any first-party source. AQL is also not Cypher.</td>
+</tr>
+<tr>
+<td><strong>NebulaGraph</strong></td>
+<td>Docker Compose definitions last updated May 2024, images last pushed over two years ago, while the commercial Cloud offering runs a core two major versions ahead. No Bolt support.</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2 id="dataset">Dataset</h2>
+<p><strong>ICIJ Offshore Leaks — the <code>Paradise Papers - Appleby</code> subset.</strong>
+161,236 nodes and 381,523 relationships after preparation.</p>
+<p>The published archive is the whole database — five investigations, 5.36 million
+rows — which does not fit a 1 GiB tier. It has to be cut down, and <em>how</em> is a
+methodology decision.</p>
+<p>This takes a <strong>natural subset</strong>: every row the source itself labels
+<code>Paradise Papers - Appleby</code>. That is a slice the data already defines, not one
+this harness invented, so anyone can re-run the filter and get identical rows.
+A seeded random subsample would have been defensible but weaker — a reader
+would have to trust that the sampler did not pick an easy graph.</p>
+<p>It was chosen over every SNAP alternative for one decisive reason: <strong>it is the
+only candidate in the 100k–500k range with a clear licence.</strong> ODbL for the
+database, CC BY-SA for the contents. Every other candidate — Pokec, email-Enron,
+wiki-Vote, the Neo4j example repos — declares no licence at all. It also has
+real typed properties; the SNAP edge lists are bare <code>src⇥dst</code> pairs and cannot
+exercise a filtered lookup or a group-by at all.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Label</th>
+<th style="text-align: right;">Count</th>
+<th>Relationship</th>
+<th style="text-align: right;">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Officer</td>
+<td style="text-align: right;">76,915</td>
+<td><code>OFFICER_OF</code></td>
+<td style="text-align: right;">247,679</td>
+</tr>
+<tr>
+<td>Address</td>
+<td style="text-align: right;">59,200</td>
+<td><code>REGISTERED_ADDRESS</code></td>
+<td style="text-align: right;">128,269</td>
+</tr>
+<tr>
+<td>Entity</td>
+<td style="text-align: right;">24,936</td>
+<td><code>INTERMEDIARY_OF</code></td>
+<td style="text-align: right;">4,062</td>
+</tr>
+<tr>
+<td>Intermediary</td>
+<td style="text-align: right;">185</td>
+<td><code>CONNECTED_TO</code></td>
+<td style="text-align: right;">1,323</td>
+</tr>
+<tr>
+<td></td>
+<td style="text-align: right;"></td>
+<td><code>SAME_NAME_AS</code></td>
+<td style="text-align: right;">190</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>9,438 relationships were dropped</strong> because only one endpoint fell inside the
+subset. Recorded in the manifest rather than silently discarded: engines
+disagree about dangling references — some invent phantom nodes, some error,
+some drop — and different graphs on different engines is precisely what a
+benchmark must not have.</p>
+<p>The archive URL ends in <code>LATEST</code> and changes without notice, so
+<code>data/build/manifest.json</code> pins its SHA-256 and generation date.</p>
+<hr>
+<h2 id="workloads-and-query-design">Workloads and query design</h2>
+<p>Seven, and <strong>the query text is byte-identical across all four dialects</strong> — not
+"equivalent", the same characters. Every one carries an explicit <code>LIMIT</code>,
+because CognoDB enforces a <code>Max result rows: 50,000</code> that appears in no
+documentation, only in the instance's own console panel.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Point lookup</td>
+<td>one Officer by indexed <code>node_id</code></td>
+</tr>
+<tr>
+<td>Filtered lookup</td>
+<td>Entities in one jurisdiction, via an index</td>
+</tr>
+<tr>
+<td>1-hop</td>
+<td>companies this officer is an officer of</td>
+</tr>
+<tr>
+<td>2-hop</td>
+<td><strong>co-officers</strong> — people sharing a company with them</td>
+</tr>
+<tr>
+<td>3-hop</td>
+<td>companies reachable through those co-officers</td>
+</tr>
+<tr>
+<td>Aggregation</td>
+<td>count Entities grouped by jurisdiction</td>
+</tr>
+<tr>
+<td>Write</td>
+<td>set a property on one Officer, indexed</td>
+</tr>
+<tr>
+<td>Mixed</td>
+<td>90/10 read/write at 1, 10 and 40 concurrent clients</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>No traversal uses <code>DISTINCT</code></strong>, and that is a finding rather than a style
+choice. Written as <code>RETURN DISTINCT ... LIMIT 1000</code>, the three-hop query
+returns 1000 rows on Neo4j and FalkorDB and <strong>184 on Kuzu</strong>, from the same
+string and the same start node — Kuzu pushes the limit below the
+deduplication. No formulation makes them agree, so the traversals count paths
+instead, where every engine returns exactly <code>min(paths, LIMIT)</code>. Full
+measurement in <a href="https://github.com/anantk13/cognodb-graph-benchmark/blob/main/docs/METHODOLOGY.md"><code>docs/METHODOLOGY.md</code></a>.</p>
+<p>Traversal start nodes are drawn from a seeded pool of Officers with at least
+three <code>OFFICER_OF</code> edges — 15,271 qualify, three times the sample actually
+drawn. Both failure modes here are real and documented: sampling uniformly made
+the two-hop query <em>faster</em> than the one-hop query, and one published vendor
+benchmark ran every traversal from a single hard-coded node.</p>
+<hr>
+<h2 id="results">Results</h2>
+<p><em>Everything below is generated by <code>make report</code> from raw per-iteration data.
+Nothing in it is typed by hand.</em></p>
+<h3 id="targets-and-their-advertised-specifications">Targets and their advertised specifications</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Arm</th>
+<th>Image / endpoint</th>
+<th>Advertised</th>
+<th>Dialect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td>managed</td>
+<td><code>managed service</code></td>
+<td>vcpu: 0.5 burstable, ram_mb: 512, disk_gb: 1, iops: 500, max_connections: 200</td>
+<td><code>cypher5</code></td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>capped</td>
+<td><code>falkordb/falkordb:latest</code></td>
+<td>minimum: not published</td>
+<td><code>opencypher9</code></td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>capped</td>
+<td><code>falkordb/falkordb:latest</code></td>
+<td>minimum: not published</td>
+<td><code>opencypher9</code></td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>capped</td>
+<td><code>falkordb/falkordb:latest</code></td>
+<td>minimum: not published</td>
+<td><code>opencypher9</code></td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>capped</td>
+<td><code>managed service</code></td>
+<td>not published</td>
+<td><code>cypher_kuzu</code></td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>capped</td>
+<td><code>memgraph/memgraph:latest</code></td>
+<td>minimum: 1 GB RAM / 1 vCPU / 1 GB disk</td>
+<td><code>cypher_memgraph</code></td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>capped</td>
+<td><code>memgraph/memgraph:latest</code></td>
+<td>minimum: 1 GB RAM / 1 vCPU / 1 GB disk</td>
+<td><code>cypher_memgraph</code></td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>capped</td>
+<td><code>memgraph/memgraph:latest</code></td>
+<td>minimum: 1 GB RAM / 1 vCPU / 1 GB disk</td>
+<td><code>cypher_memgraph</code></td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td>managed</td>
+<td><code>managed service</code></td>
+<td>not published</td>
+<td><code>cypher5</code></td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>capped</td>
+<td><code>neo4j:5.26-community</code></td>
+<td>minimum_ram: 2 GB (development), 8 GB (server)</td>
+<td><code>cypher5</code></td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>capped</td>
+<td><code>neo4j:5.26-community</code></td>
+<td>minimum_ram: 2 GB (development), 8 GB (server)</td>
+<td><code>cypher5</code></td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td>capped</td>
+<td><code>neo4j:5.26-community</code></td>
+<td>minimum_ram: 2 GB (development), 8 GB (server)</td>
+<td><code>cypher5</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ingest">Ingest</h3>
+<p><em>Driver batching, identical batch size on every target. Each engine's faster native path was deliberately not used; see the README.</em></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">Nodes/s</th>
+<th style="text-align: right;">Rels/s</th>
+<th style="text-align: right;">Wall clock</th>
+<th>Graph verified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">845</td>
+<td style="text-align: right;">1,999</td>
+<td style="text-align: right;">190.9s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">35,153</td>
+<td style="text-align: right;">83,181</td>
+<td style="text-align: right;">4.6s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">35,913</td>
+<td style="text-align: right;">84,979</td>
+<td style="text-align: right;">4.5s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">34,191</td>
+<td style="text-align: right;">80,903</td>
+<td style="text-align: right;">4.7s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">134</td>
+<td style="text-align: right;">318</td>
+<td style="text-align: right;">1,201.0s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">1,071</td>
+<td style="text-align: right;">2,535</td>
+<td style="text-align: right;">150.5s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">1,135</td>
+<td style="text-align: right;">2,686</td>
+<td style="text-align: right;">142.1s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">1,057</td>
+<td style="text-align: right;">2,502</td>
+<td style="text-align: right;">152.5s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">1,773</td>
+<td style="text-align: right;">4,194</td>
+<td style="text-align: right;">91.0s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">3,516</td>
+<td style="text-align: right;">8,321</td>
+<td style="text-align: right;">45.9s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">3,072</td>
+<td style="text-align: right;">7,269</td>
+<td style="text-align: right;">52.5s</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="latency-by-workload">Latency by workload</h3>
+<p><em>p50 and p95 only. This client is closed-loop, which under-samples stalls; the distortion is negligible at p50, around 1.5x at p95, and 20x or worse at p99, so no p99 is published from this path. <code>p95 CI</code> is a distribution-free confidence interval from order statistics -- where it reads <strong>unbounded</strong>, the sample was too small to close the interval and the p95 should not be quoted.</em></p>
+<h4 id="point-lookup">Point lookup</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">238.26ms</td>
+<td style="text-align: right;">285.54ms</td>
+<td style="text-align: right;">[272.01, 300.27]</td>
+<td style="text-align: right;">243.69ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.45ms</td>
+<td style="text-align: right;">[0.45, 0.46]</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.02ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">0.44ms</td>
+<td style="text-align: right;">[0.44, 0.45]</td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">0.02ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.46ms</td>
+<td style="text-align: right;">[0.45, 0.46]</td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">0.02ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">0.16ms</td>
+<td style="text-align: right;">0.19ms</td>
+<td style="text-align: right;">[0.19, 0.19]</td>
+<td style="text-align: right;">0.16ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">0.49ms</td>
+<td style="text-align: right;">[0.49, 0.51]</td>
+<td style="text-align: right;">0.88ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">0.50ms</td>
+<td style="text-align: right;">[0.49, 0.52]</td>
+<td style="text-align: right;">0.86ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">0.66ms</td>
+<td style="text-align: right;">[0.61, 0.79]</td>
+<td style="text-align: right;">0.93ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">87.28ms</td>
+<td style="text-align: right;">91.24ms</td>
+<td style="text-align: right;">[90.26, 94.80]</td>
+<td style="text-align: right;">89.89ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">0.83ms</td>
+<td style="text-align: right;">1.20ms</td>
+<td style="text-align: right;">[1.15, 1.28]</td>
+<td style="text-align: right;">1.86ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">0.77ms</td>
+<td style="text-align: right;">1.17ms</td>
+<td style="text-align: right;">[1.08, 1.48]</td>
+<td style="text-align: right;">1.77ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="filtered-lookup-indexed">Filtered lookup (indexed)</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">310.03ms</td>
+<td style="text-align: right;">823.12ms</td>
+<td style="text-align: right;">[810.95, 861.95]</td>
+<td style="text-align: right;">464.49ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">2.46ms</td>
+<td style="text-align: right;">4.91ms</td>
+<td style="text-align: right;">[4.88, 5.28]</td>
+<td style="text-align: right;">2.75ms</td>
+<td style="text-align: right;">0.08ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">2.46ms</td>
+<td style="text-align: right;">4.95ms</td>
+<td style="text-align: right;">[4.89, 5.08]</td>
+<td style="text-align: right;">2.74ms</td>
+<td style="text-align: right;">0.08ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">2.51ms</td>
+<td style="text-align: right;">5.13ms</td>
+<td style="text-align: right;">[5.04, 5.32]</td>
+<td style="text-align: right;">2.80ms</td>
+<td style="text-align: right;">0.08ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">1.74ms</td>
+<td style="text-align: right;">2.18ms</td>
+<td style="text-align: right;">[2.18, 2.19]</td>
+<td style="text-align: right;">1.78ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">5.62ms</td>
+<td style="text-align: right;">11.38ms</td>
+<td style="text-align: right;">[11.36, 11.42]</td>
+<td style="text-align: right;">5.97ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">5.55ms</td>
+<td style="text-align: right;">11.33ms</td>
+<td style="text-align: right;">[11.31, 11.35]</td>
+<td style="text-align: right;">5.89ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">5.73ms</td>
+<td style="text-align: right;">12.51ms</td>
+<td style="text-align: right;">[12.20, 13.24]</td>
+<td style="text-align: right;">6.68ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">184.61ms</td>
+<td style="text-align: right;">536.24ms</td>
+<td style="text-align: right;">[520.26, 604.95]</td>
+<td style="text-align: right;">234.01ms</td>
+<td style="text-align: right;">2.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">11.36ms</td>
+<td style="text-align: right;">45.02ms</td>
+<td style="text-align: right;">[40.90, 58.14]</td>
+<td style="text-align: right;">15.59ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">6.23ms</td>
+<td style="text-align: right;">12.60ms</td>
+<td style="text-align: right;">[12.52, 12.71]</td>
+<td style="text-align: right;">6.87ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="1-hop-traversal">1-hop traversal</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">240.40ms</td>
+<td style="text-align: right;">327.65ms</td>
+<td style="text-align: right;">[315.65, 338.62]</td>
+<td style="text-align: right;">257.15ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">0.44ms</td>
+<td style="text-align: right;">0.50ms</td>
+<td style="text-align: right;">[0.49, 0.52]</td>
+<td style="text-align: right;">0.45ms</td>
+<td style="text-align: right;">0.04ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">0.45ms</td>
+<td style="text-align: right;">0.52ms</td>
+<td style="text-align: right;">[0.51, 0.55]</td>
+<td style="text-align: right;">0.46ms</td>
+<td style="text-align: right;">0.03ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">0.45ms</td>
+<td style="text-align: right;">0.52ms</td>
+<td style="text-align: right;">[0.51, 0.54]</td>
+<td style="text-align: right;">0.45ms</td>
+<td style="text-align: right;">0.04ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">0.62ms</td>
+<td style="text-align: right;">0.86ms</td>
+<td style="text-align: right;">[0.83, 0.91]</td>
+<td style="text-align: right;">0.65ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">0.46ms</td>
+<td style="text-align: right;">0.72ms</td>
+<td style="text-align: right;">[0.64, 0.95]</td>
+<td style="text-align: right;">0.98ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">0.47ms</td>
+<td style="text-align: right;">0.76ms</td>
+<td style="text-align: right;">[0.71, 0.97]</td>
+<td style="text-align: right;">0.98ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">0.48ms</td>
+<td style="text-align: right;">0.93ms</td>
+<td style="text-align: right;">[0.81, 1.21]</td>
+<td style="text-align: right;">1.07ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">87.84ms</td>
+<td style="text-align: right;">101.30ms</td>
+<td style="text-align: right;">[97.76, 108.07]</td>
+<td style="text-align: right;">91.21ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">0.81ms</td>
+<td style="text-align: right;">1.34ms</td>
+<td style="text-align: right;">[1.22, 1.59]</td>
+<td style="text-align: right;">1.16ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">0.74ms</td>
+<td style="text-align: right;">1.30ms</td>
+<td style="text-align: right;">[1.14, 1.62]</td>
+<td style="text-align: right;">1.06ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="2-hop-traversal">2-hop traversal</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">259.91ms</td>
+<td style="text-align: right;">726.84ms</td>
+<td style="text-align: right;">[596.12, 766.12]</td>
+<td style="text-align: right;">362.96ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">0.50ms</td>
+<td style="text-align: right;">0.88ms</td>
+<td style="text-align: right;">[0.80, 1.08]</td>
+<td style="text-align: right;">0.59ms</td>
+<td style="text-align: right;">0.05ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">0.53ms</td>
+<td style="text-align: right;">0.87ms</td>
+<td style="text-align: right;">[0.81, 1.09]</td>
+<td style="text-align: right;">0.61ms</td>
+<td style="text-align: right;">0.05ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">0.54ms</td>
+<td style="text-align: right;">0.90ms</td>
+<td style="text-align: right;">[0.85, 1.10]</td>
+<td style="text-align: right;">0.62ms</td>
+<td style="text-align: right;">0.05ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">47.66ms</td>
+<td style="text-align: right;">53.75ms</td>
+<td style="text-align: right;">[53.12, 55.29]</td>
+<td style="text-align: right;">49.46ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">1.41ms</td>
+<td style="text-align: right;">6.44ms</td>
+<td style="text-align: right;">[5.65, 8.75]</td>
+<td style="text-align: right;">2.06ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">1.39ms</td>
+<td style="text-align: right;">6.44ms</td>
+<td style="text-align: right;">[5.53, 8.64]</td>
+<td style="text-align: right;">2.02ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">1.50ms</td>
+<td style="text-align: right;">6.99ms</td>
+<td style="text-align: right;">[6.26, 8.98]</td>
+<td style="text-align: right;">2.20ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">91.68ms</td>
+<td style="text-align: right;">139.07ms</td>
+<td style="text-align: right;">[115.58, 203.44]</td>
+<td style="text-align: right;">99.25ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">2.13ms</td>
+<td style="text-align: right;">10.67ms</td>
+<td style="text-align: right;">[8.18, 11.62]</td>
+<td style="text-align: right;">3.37ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">1.84ms</td>
+<td style="text-align: right;">9.64ms</td>
+<td style="text-align: right;">[7.84, 11.16]</td>
+<td style="text-align: right;">3.21ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="3-hop-traversal">3-hop traversal</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">739.18ms</td>
+<td style="text-align: right;">1,002.06ms</td>
+<td style="text-align: right;">[920.65, 1,047.93]</td>
+<td style="text-align: right;">726.48ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">3.08ms</td>
+<td style="text-align: right;">3.39ms</td>
+<td style="text-align: right;">[3.32, 3.44]</td>
+<td style="text-align: right;">2.64ms</td>
+<td style="text-align: right;">0.23ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">3.08ms</td>
+<td style="text-align: right;">3.41ms</td>
+<td style="text-align: right;">[3.36, 3.56]</td>
+<td style="text-align: right;">2.65ms</td>
+<td style="text-align: right;">0.23ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">3.13ms</td>
+<td style="text-align: right;">3.56ms</td>
+<td style="text-align: right;">[3.45, 3.93]</td>
+<td style="text-align: right;">2.71ms</td>
+<td style="text-align: right;">0.24ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">50.74ms</td>
+<td style="text-align: right;">56.47ms</td>
+<td style="text-align: right;">[55.64, 57.68]</td>
+<td style="text-align: right;">51.40ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">9.31ms</td>
+<td style="text-align: right;">9.54ms</td>
+<td style="text-align: right;">[9.50, 9.59]</td>
+<td style="text-align: right;">8.41ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">9.27ms</td>
+<td style="text-align: right;">9.52ms</td>
+<td style="text-align: right;">[9.48, 9.60]</td>
+<td style="text-align: right;">8.42ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">9.39ms</td>
+<td style="text-align: right;">10.84ms</td>
+<td style="text-align: right;">[10.47, 11.29]</td>
+<td style="text-align: right;">8.80ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">201.64ms</td>
+<td style="text-align: right;">274.90ms</td>
+<td style="text-align: right;">[271.47, 285.64]</td>
+<td style="text-align: right;">194.72ms</td>
+<td style="text-align: right;">3.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">11.55ms</td>
+<td style="text-align: right;">12.60ms</td>
+<td style="text-align: right;">[12.44, 12.85]</td>
+<td style="text-align: right;">11.22ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">11.14ms</td>
+<td style="text-align: right;">12.36ms</td>
+<td style="text-align: right;">[12.03, 12.78]</td>
+<td style="text-align: right;">10.44ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="aggregation-group-by">Aggregation (group-by)</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">331.27ms</td>
+<td style="text-align: right;">417.01ms</td>
+<td style="text-align: right;">[407.25, 436.17]</td>
+<td style="text-align: right;">346.90ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">3.29ms</td>
+<td style="text-align: right;">40.80ms</td>
+<td style="text-align: right;">[5.06, 42.14]</td>
+<td style="text-align: right;">5.57ms</td>
+<td style="text-align: right;">2.69ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">3.25ms</td>
+<td style="text-align: right;">40.69ms</td>
+<td style="text-align: right;">[3.74, 42.66]</td>
+<td style="text-align: right;">5.51ms</td>
+<td style="text-align: right;">2.69ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">3.30ms</td>
+<td style="text-align: right;">41.63ms</td>
+<td style="text-align: right;">[4.55, 43.14]</td>
+<td style="text-align: right;">5.68ms</td>
+<td style="text-align: right;">2.72ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1.05ms</td>
+<td style="text-align: right;">[1.04, 1.07]</td>
+<td style="text-align: right;">0.98ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">11.87ms</td>
+<td style="text-align: right;">63.81ms</td>
+<td style="text-align: right;">[62.67, 64.54]</td>
+<td style="text-align: right;">23.50ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">11.53ms</td>
+<td style="text-align: right;">62.46ms</td>
+<td style="text-align: right;">[62.22, 62.98]</td>
+<td style="text-align: right;">22.86ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">11.76ms</td>
+<td style="text-align: right;">63.97ms</td>
+<td style="text-align: right;">[63.28, 64.96]</td>
+<td style="text-align: right;">23.18ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">97.08ms</td>
+<td style="text-align: right;">108.32ms</td>
+<td style="text-align: right;">[106.19, 113.10]</td>
+<td style="text-align: right;">99.40ms</td>
+<td style="text-align: right;">8.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">3.70ms</td>
+<td style="text-align: right;">47.06ms</td>
+<td style="text-align: right;">[40.24, 53.48]</td>
+<td style="text-align: right;">8.10ms</td>
+<td style="text-align: right;">3.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">3.53ms</td>
+<td style="text-align: right;">46.60ms</td>
+<td style="text-align: right;">[39.33, 57.87]</td>
+<td style="text-align: right;">8.40ms</td>
+<td style="text-align: right;">3.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="write-indexed-update">Write (indexed update)</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">p95 CI</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">RTT floor p50</th>
+<th style="text-align: right;">rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">3,871.26ms</td>
+<td style="text-align: right;">4,866.65ms</td>
+<td style="text-align: right;">[4,737.78, 6,796.57]</td>
+<td style="text-align: right;">4,027.65ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">0.44ms</td>
+<td style="text-align: right;">0.48ms</td>
+<td style="text-align: right;">[0.48, 0.49]</td>
+<td style="text-align: right;">0.44ms</td>
+<td style="text-align: right;">0.03ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.45ms</td>
+<td style="text-align: right;">[0.45, 0.46]</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">0.02ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.48ms</td>
+<td style="text-align: right;">[0.47, 0.49]</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.03ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">0.28ms</td>
+<td style="text-align: right;">0.35ms</td>
+<td style="text-align: right;">[0.33, 0.37]</td>
+<td style="text-align: right;">0.29ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">0.52ms</td>
+<td style="text-align: right;">[0.51, 0.54]</td>
+<td style="text-align: right;">0.89ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">0.52ms</td>
+<td style="text-align: right;">[0.51, 0.54]</td>
+<td style="text-align: right;">0.89ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.63ms</td>
+<td style="text-align: right;">[0.59, 0.66]</td>
+<td style="text-align: right;">0.95ms</td>
+<td style="text-align: right;">not reported</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">91.91ms</td>
+<td style="text-align: right;">103.15ms</td>
+<td style="text-align: right;">[100.00, 108.76]</td>
+<td style="text-align: right;">96.50ms</td>
+<td style="text-align: right;">1.00ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">0.78ms</td>
+<td style="text-align: right;">1.48ms</td>
+<td style="text-align: right;">[1.39, 1.75]</td>
+<td style="text-align: right;">1.79ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">0.87ms</td>
+<td style="text-align: right;">7.38ms</td>
+<td style="text-align: right;">[4.91, 28.08]</td>
+<td style="text-align: right;">3.68ms</td>
+<td style="text-align: right;">0.00ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="mixed-workload-sustained-throughput">Mixed workload -- sustained throughput</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">Clients</th>
+<th style="text-align: right;">Sustained q/s</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p95</th>
+<th style="text-align: right;">Reads</th>
+<th style="text-align: right;">Writes</th>
+<th style="text-align: right;">Failures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.7</td>
+<td style="text-align: right;">479.30ms</td>
+<td style="text-align: right;">4,229.02ms</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">9.5</td>
+<td style="text-align: right;">576.66ms</td>
+<td style="text-align: right;">4,752.47ms</td>
+<td style="text-align: right;">257</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">19.4</td>
+<td style="text-align: right;">855.27ms</td>
+<td style="text-align: right;">13,471.63ms</td>
+<td style="text-align: right;">526</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">624.6</td>
+<td style="text-align: right;">0.60ms</td>
+<td style="text-align: right;">4.64ms</td>
+<td style="text-align: right;">16,895</td>
+<td style="text-align: right;">1,843</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">782.5</td>
+<td style="text-align: right;">7.34ms</td>
+<td style="text-align: right;">52.02ms</td>
+<td style="text-align: right;">21,118</td>
+<td style="text-align: right;">2,357</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">731.5</td>
+<td style="text-align: right;">42.33ms</td>
+<td style="text-align: right;">113.82ms</td>
+<td style="text-align: right;">19,751</td>
+<td style="text-align: right;">2,194</td>
+<td style="text-align: right;">1,404</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">620.3</td>
+<td style="text-align: right;">0.61ms</td>
+<td style="text-align: right;">4.68ms</td>
+<td style="text-align: right;">16,786</td>
+<td style="text-align: right;">1,824</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">793.7</td>
+<td style="text-align: right;">7.34ms</td>
+<td style="text-align: right;">49.88ms</td>
+<td style="text-align: right;">21,416</td>
+<td style="text-align: right;">2,396</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">684.8</td>
+<td style="text-align: right;">45.72ms</td>
+<td style="text-align: right;">118.67ms</td>
+<td style="text-align: right;">18,487</td>
+<td style="text-align: right;">2,058</td>
+<td style="text-align: right;">1,330</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">609.9</td>
+<td style="text-align: right;">0.62ms</td>
+<td style="text-align: right;">4.73ms</td>
+<td style="text-align: right;">16,498</td>
+<td style="text-align: right;">1,798</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">706.2</td>
+<td style="text-align: right;">7.67ms</td>
+<td style="text-align: right;">57.58ms</td>
+<td style="text-align: right;">19,059</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">667.2</td>
+<td style="text-align: right;">46.02ms</td>
+<td style="text-align: right;">125.73ms</td>
+<td style="text-align: right;">18,015</td>
+<td style="text-align: right;">2,000</td>
+<td style="text-align: right;">1,337</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">62.5</td>
+<td style="text-align: right;">1.20ms</td>
+<td style="text-align: right;">51.77ms</td>
+<td style="text-align: right;">1,713</td>
+<td style="text-align: right;">162</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">63.5</td>
+<td style="text-align: right;">115.49ms</td>
+<td style="text-align: right;">389.92ms</td>
+<td style="text-align: right;">1,720</td>
+<td style="text-align: right;">185</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">63.3</td>
+<td style="text-align: right;">357.11ms</td>
+<td style="text-align: right;">1,495.85ms</td>
+<td style="text-align: right;">1,727</td>
+<td style="text-align: right;">173</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">194.3</td>
+<td style="text-align: right;">1.60ms</td>
+<td style="text-align: right;">11.58ms</td>
+<td style="text-align: right;">5,259</td>
+<td style="text-align: right;">570</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">181.3</td>
+<td style="text-align: right;">41.99ms</td>
+<td style="text-align: right;">161.49ms</td>
+<td style="text-align: right;">4,904</td>
+<td style="text-align: right;">536</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">181.9</td>
+<td style="text-align: right;">181.29ms</td>
+<td style="text-align: right;">529.60ms</td>
+<td style="text-align: right;">4,929</td>
+<td style="text-align: right;">529</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">201.1</td>
+<td style="text-align: right;">1.57ms</td>
+<td style="text-align: right;">11.30ms</td>
+<td style="text-align: right;">5,447</td>
+<td style="text-align: right;">586</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">181.5</td>
+<td style="text-align: right;">41.57ms</td>
+<td style="text-align: right;">160.84ms</td>
+<td style="text-align: right;">4,903</td>
+<td style="text-align: right;">542</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">187.8</td>
+<td style="text-align: right;">177.00ms</td>
+<td style="text-align: right;">508.16ms</td>
+<td style="text-align: right;">5,085</td>
+<td style="text-align: right;">548</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">191.7</td>
+<td style="text-align: right;">1.63ms</td>
+<td style="text-align: right;">11.66ms</td>
+<td style="text-align: right;">5,186</td>
+<td style="text-align: right;">565</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">175.0</td>
+<td style="text-align: right;">42.76ms</td>
+<td style="text-align: right;">167.81ms</td>
+<td style="text-align: right;">4,737</td>
+<td style="text-align: right;">513</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">149.7</td>
+<td style="text-align: right;">201.05ms</td>
+<td style="text-align: right;">707.31ms</td>
+<td style="text-align: right;">4,050</td>
+<td style="text-align: right;">442</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">7.9</td>
+<td style="text-align: right;">93.72ms</td>
+<td style="text-align: right;">274.79ms</td>
+<td style="text-align: right;">215</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">76.0</td>
+<td style="text-align: right;">99.60ms</td>
+<td style="text-align: right;">254.80ms</td>
+<td style="text-align: right;">2,056</td>
+<td style="text-align: right;">225</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">264.3</td>
+<td style="text-align: right;">116.80ms</td>
+<td style="text-align: right;">311.94ms</td>
+<td style="text-align: right;">7,147</td>
+<td style="text-align: right;">782</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">241.6</td>
+<td style="text-align: right;">1.98ms</td>
+<td style="text-align: right;">12.20ms</td>
+<td style="text-align: right;">6,545</td>
+<td style="text-align: right;">702</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">187.4</td>
+<td style="text-align: right;">11.93ms</td>
+<td style="text-align: right;">222.70ms</td>
+<td style="text-align: right;">5,066</td>
+<td style="text-align: right;">556</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">179.5</td>
+<td style="text-align: right;">39.19ms</td>
+<td style="text-align: right;">1,003.60ms</td>
+<td style="text-align: right;">4,860</td>
+<td style="text-align: right;">524</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">246.5</td>
+<td style="text-align: right;">1.88ms</td>
+<td style="text-align: right;">12.09ms</td>
+<td style="text-align: right;">6,681</td>
+<td style="text-align: right;">713</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">196.5</td>
+<td style="text-align: right;">11.94ms</td>
+<td style="text-align: right;">213.67ms</td>
+<td style="text-align: right;">5,313</td>
+<td style="text-align: right;">581</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">182.0</td>
+<td style="text-align: right;">39.79ms</td>
+<td style="text-align: right;">987.39ms</td>
+<td style="text-align: right;">4,926</td>
+<td style="text-align: right;">533</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="cold-start-versus-steady-state">Cold start versus steady state</h3>
+<p><em>A trivial round trip against a freshly started engine holding no data, against the same round trip once the graph is loaded. Reported separately, never averaged together.</em></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">Cold p50</th>
+<th style="text-align: right;">Cold p95</th>
+<th style="text-align: right;">Warm p50</th>
+<th style="text-align: right;">Warm p95</th>
+<th style="text-align: right;">Cold/warm ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">238.87ms</td>
+<td style="text-align: right;">270.50ms</td>
+<td style="text-align: right;">238.10ms</td>
+<td style="text-align: right;">298.79ms</td>
+<td style="text-align: right;">1.00x</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">0.44ms</td>
+<td style="text-align: right;">0.98x</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.37ms</td>
+<td style="text-align: right;">0.42ms</td>
+<td style="text-align: right;">1.11x</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.47ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.46ms</td>
+<td style="text-align: right;">1.00x</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">0.08ms</td>
+<td style="text-align: right;">0.13ms</td>
+<td style="text-align: right;">0.10ms</td>
+<td style="text-align: right;">0.12ms</td>
+<td style="text-align: right;">0.88x</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">0.41ms</td>
+<td style="text-align: right;">1.02ms</td>
+<td style="text-align: right;">0.40ms</td>
+<td style="text-align: right;">0.47ms</td>
+<td style="text-align: right;">1.01x</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">0.39ms</td>
+<td style="text-align: right;">0.46ms</td>
+<td style="text-align: right;">0.43ms</td>
+<td style="text-align: right;">0.67ms</td>
+<td style="text-align: right;">0.91x</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">0.47ms</td>
+<td style="text-align: right;">0.38ms</td>
+<td style="text-align: right;">0.47ms</td>
+<td style="text-align: right;">0.98x</td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">96.75ms</td>
+<td style="text-align: right;">87.45ms</td>
+<td style="text-align: right;">92.58ms</td>
+<td style="text-align: right;">1.00x</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">2.11ms</td>
+<td style="text-align: right;">61.87ms</td>
+<td style="text-align: right;">0.97ms</td>
+<td style="text-align: right;">1.66ms</td>
+<td style="text-align: right;">2.17x</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">2.11ms</td>
+<td style="text-align: right;">70.64ms</td>
+<td style="text-align: right;">0.94ms</td>
+<td style="text-align: right;">1.42ms</td>
+<td style="text-align: right;">2.25x</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="footprint">Footprint</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th style="text-align: right;">Stored</th>
+<th style="text-align: right;">Memory</th>
+<th style="text-align: right;">Nodes</th>
+<th style="text-align: right;">Relationships</th>
+<th>Enforced cgroup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cognodb-c0</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td>not containerised</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">105.2 MiB</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=1073741824</code></td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">104.8 MiB</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=2147483648</code></td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">105.3 MiB</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=536870912</code></td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td style="text-align: right;">89.1 MiB</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td>not containerised</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=1073741824</code></td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=2147483648</code></td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=536870912</code></td>
+</tr>
+<tr>
+<td><code>neo4j-aura-free</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td>not containerised</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=1073741824</code></td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">not observable</td>
+<td style="text-align: right;">161,236</td>
+<td style="text-align: right;">381,523</td>
+<td><code>cpu.max=50000 100000</code> <code>memory.max=2147483648</code></td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">DNF</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="failures-and-did-not-finish">Failures and did-not-finish</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Outcome</th>
+<th>Reason</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neo4j-community @ 512m</code></td>
+<td>DNF</td>
+<td>out of memory</td>
+<td>exit=137, oom_killed=True</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="run-to-run-variance">Run-to-run variance</h3>
+<p><em>The full suite was executed <strong>3 times</strong>. The 1,000 iterations within each run give a confidence interval on each percentile; they say nothing about variation <em>between</em> runs, which has larger sources -- multi-tenant free tiers, differing cache states at container start, burstable CPU credit, and host thermal state. A difference between two engines smaller than either one's own spread is not a difference.</em></p>
+<p>Median coefficient of variation across 99 repeated measurements: <strong>0.024</strong>. Measurements marked ⚠ exceed a coefficient of variation of 0.10 and should not be compared across engines without accounting for the spread.</p>
+<h4 id="least-stable-measurements-3">Least stable measurements (3)</h4>
+<p><em>Listed first because these are the numbers a reader is most likely to over-interpret.</em></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Metric</th>
+<th style="text-align: right;">Runs</th>
+<th style="text-align: right;">Median</th>
+<th style="text-align: right;">Min</th>
+<th style="text-align: right;">Max</th>
+<th style="text-align: right;">Spread</th>
+<th style="text-align: right;">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">83,180.98</td>
+<td style="text-align: right;">69,428.65</td>
+<td style="text-align: right;">83,463.45</td>
+<td style="text-align: right;">16.9%</td>
+<td style="text-align: right;">0.102 ⚠</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">149.73</td>
+<td style="text-align: right;">147.47</td>
+<td style="text-align: right;">183.07</td>
+<td style="text-align: right;">23.8%</td>
+<td style="text-align: right;">0.125 ⚠</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6.33</td>
+<td style="text-align: right;">6.10</td>
+<td style="text-align: right;">11.36</td>
+<td style="text-align: right;">83.1%</td>
+<td style="text-align: right;">0.375 ⚠</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="latency-across-runs">Latency, across runs</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Metric</th>
+<th style="text-align: right;">Runs</th>
+<th style="text-align: right;">Median</th>
+<th style="text-align: right;">Min</th>
+<th style="text-align: right;">Max</th>
+<th style="text-align: right;">Spread</th>
+<th style="text-align: right;">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.32</td>
+<td style="text-align: right;">3.29</td>
+<td style="text-align: right;">3.43</td>
+<td style="text-align: right;">4.2%</td>
+<td style="text-align: right;">0.022</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2.53</td>
+<td style="text-align: right;">2.46</td>
+<td style="text-align: right;">2.54</td>
+<td style="text-align: right;">3.1%</td>
+<td style="text-align: right;">0.017</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">3.4%</td>
+<td style="text-align: right;">0.017</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.52</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">6.7%</td>
+<td style="text-align: right;">0.034</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.16</td>
+<td style="text-align: right;">3.08</td>
+<td style="text-align: right;">3.23</td>
+<td style="text-align: right;">4.7%</td>
+<td style="text-align: right;">0.024</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">0.38</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">11.7%</td>
+<td style="text-align: right;">0.061</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.9%</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.27</td>
+<td style="text-align: right;">3.25</td>
+<td style="text-align: right;">3.37</td>
+<td style="text-align: right;">3.8%</td>
+<td style="text-align: right;">0.020</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2.50</td>
+<td style="text-align: right;">2.46</td>
+<td style="text-align: right;">2.50</td>
+<td style="text-align: right;">1.8%</td>
+<td style="text-align: right;">0.010</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">2.5%</td>
+<td style="text-align: right;">0.013</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">1.2%</td>
+<td style="text-align: right;">0.006</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.12</td>
+<td style="text-align: right;">3.08</td>
+<td style="text-align: right;">3.17</td>
+<td style="text-align: right;">2.8%</td>
+<td style="text-align: right;">0.014</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">3.4%</td>
+<td style="text-align: right;">0.017</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.9%</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.30</td>
+<td style="text-align: right;">3.27</td>
+<td style="text-align: right;">3.30</td>
+<td style="text-align: right;">0.7%</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2.49</td>
+<td style="text-align: right;">2.48</td>
+<td style="text-align: right;">2.51</td>
+<td style="text-align: right;">1.4%</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">3.6%</td>
+<td style="text-align: right;">0.018</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">2.9%</td>
+<td style="text-align: right;">0.015</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.13</td>
+<td style="text-align: right;">3.10</td>
+<td style="text-align: right;">3.18</td>
+<td style="text-align: right;">2.5%</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">1.3%</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">4.0%</td>
+<td style="text-align: right;">0.020</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">1.03</td>
+<td style="text-align: right;">6.0%</td>
+<td style="text-align: right;">0.030</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.73</td>
+<td style="text-align: right;">1.70</td>
+<td style="text-align: right;">1.74</td>
+<td style="text-align: right;">2.1%</td>
+<td style="text-align: right;">0.011</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.62</td>
+<td style="text-align: right;">0.61</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">7.2%</td>
+<td style="text-align: right;">0.037</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">48.39</td>
+<td style="text-align: right;">47.66</td>
+<td style="text-align: right;">48.81</td>
+<td style="text-align: right;">2.4%</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">50.94</td>
+<td style="text-align: right;">50.74</td>
+<td style="text-align: right;">51.71</td>
+<td style="text-align: right;">1.9%</td>
+<td style="text-align: right;">0.010</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">1.8%</td>
+<td style="text-align: right;">0.010</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">3.0%</td>
+<td style="text-align: right;">0.016</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">11.75</td>
+<td style="text-align: right;">11.53</td>
+<td style="text-align: right;">11.87</td>
+<td style="text-align: right;">2.9%</td>
+<td style="text-align: right;">0.015</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5.57</td>
+<td style="text-align: right;">5.48</td>
+<td style="text-align: right;">5.62</td>
+<td style="text-align: right;">2.5%</td>
+<td style="text-align: right;">0.013</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">5.5%</td>
+<td style="text-align: right;">0.030</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.41</td>
+<td style="text-align: right;">1.38</td>
+<td style="text-align: right;">1.49</td>
+<td style="text-align: right;">7.9%</td>
+<td style="text-align: right;">0.041</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">9.31</td>
+<td style="text-align: right;">9.17</td>
+<td style="text-align: right;">9.40</td>
+<td style="text-align: right;">2.5%</td>
+<td style="text-align: right;">0.013</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">5.4%</td>
+<td style="text-align: right;">0.027</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">3.9%</td>
+<td style="text-align: right;">0.021</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">11.60</td>
+<td style="text-align: right;">11.53</td>
+<td style="text-align: right;">12.10</td>
+<td style="text-align: right;">4.9%</td>
+<td style="text-align: right;">0.026</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5.55</td>
+<td style="text-align: right;">5.50</td>
+<td style="text-align: right;">5.55</td>
+<td style="text-align: right;">0.9%</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: right;">0.49</td>
+<td style="text-align: right;">4.2%</td>
+<td style="text-align: right;">0.022</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.39</td>
+<td style="text-align: right;">1.37</td>
+<td style="text-align: right;">1.43</td>
+<td style="text-align: right;">5.0%</td>
+<td style="text-align: right;">0.026</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">9.27</td>
+<td style="text-align: right;">9.19</td>
+<td style="text-align: right;">9.27</td>
+<td style="text-align: right;">0.9%</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.38</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">7.3%</td>
+<td style="text-align: right;">0.041</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">8.7%</td>
+<td style="text-align: right;">0.046</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">11.76</td>
+<td style="text-align: right;">11.67</td>
+<td style="text-align: right;">11.85</td>
+<td style="text-align: right;">1.5%</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5.36</td>
+<td style="text-align: right;">5.35</td>
+<td style="text-align: right;">5.73</td>
+<td style="text-align: right;">6.9%</td>
+<td style="text-align: right;">0.039</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">1.0%</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.38</td>
+<td style="text-align: right;">1.37</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">9.7%</td>
+<td style="text-align: right;">0.051</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">9.12</td>
+<td style="text-align: right;">9.09</td>
+<td style="text-align: right;">9.39</td>
+<td style="text-align: right;">3.4%</td>
+<td style="text-align: right;">0.018</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.37</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">13.0%</td>
+<td style="text-align: right;">0.066</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">5.2%</td>
+<td style="text-align: right;">0.026</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.70</td>
+<td style="text-align: right;">3.46</td>
+<td style="text-align: right;">3.71</td>
+<td style="text-align: right;">6.7%</td>
+<td style="text-align: right;">0.039</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6.33</td>
+<td style="text-align: right;">6.10</td>
+<td style="text-align: right;">11.36</td>
+<td style="text-align: right;">83.1%</td>
+<td style="text-align: right;">0.375 ⚠</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">0.86</td>
+<td style="text-align: right;">14.7%</td>
+<td style="text-align: right;">0.074</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.90</td>
+<td style="text-align: right;">2.13</td>
+<td style="text-align: right;">11.4%</td>
+<td style="text-align: right;">0.057</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">11.37</td>
+<td style="text-align: right;">10.95</td>
+<td style="text-align: right;">11.55</td>
+<td style="text-align: right;">5.3%</td>
+<td style="text-align: right;">0.027</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.83</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">10.8%</td>
+<td style="text-align: right;">0.054</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">0.84</td>
+<td style="text-align: right;">7.2%</td>
+<td style="text-align: right;">0.037</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>aggregation p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.40</td>
+<td style="text-align: right;">3.38</td>
+<td style="text-align: right;">3.53</td>
+<td style="text-align: right;">4.3%</td>
+<td style="text-align: right;">0.023</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>filtered_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6.23</td>
+<td style="text-align: right;">6.18</td>
+<td style="text-align: right;">6.32</td>
+<td style="text-align: right;">2.3%</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>hop1 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">4.9%</td>
+<td style="text-align: right;">0.026</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>hop2 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.84</td>
+<td style="text-align: right;">1.81</td>
+<td style="text-align: right;">1.94</td>
+<td style="text-align: right;">7.2%</td>
+<td style="text-align: right;">0.037</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>hop3 p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">11.14</td>
+<td style="text-align: right;">10.98</td>
+<td style="text-align: right;">11.20</td>
+<td style="text-align: right;">2.0%</td>
+<td style="text-align: right;">0.010</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>point_lookup p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">7.2%</td>
+<td style="text-align: right;">0.037</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>write_tag p50 ms</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">11.7%</td>
+<td style="text-align: right;">0.063</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="ingest-across-runs">Ingest, across runs</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Metric</th>
+<th style="text-align: right;">Runs</th>
+<th style="text-align: right;">Median</th>
+<th style="text-align: right;">Min</th>
+<th style="text-align: right;">Max</th>
+<th style="text-align: right;">Spread</th>
+<th style="text-align: right;">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">83,180.98</td>
+<td style="text-align: right;">69,428.65</td>
+<td style="text-align: right;">83,463.45</td>
+<td style="text-align: right;">16.9%</td>
+<td style="text-align: right;">0.102 ⚠</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">84,195.51</td>
+<td style="text-align: right;">81,140.17</td>
+<td style="text-align: right;">84,979.15</td>
+<td style="text-align: right;">4.6%</td>
+<td style="text-align: right;">0.024</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">82,861.70</td>
+<td style="text-align: right;">80,903.08</td>
+<td style="text-align: right;">85,988.76</td>
+<td style="text-align: right;">6.1%</td>
+<td style="text-align: right;">0.031</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">317.66</td>
+<td style="text-align: right;">313.67</td>
+<td style="text-align: right;">319.70</td>
+<td style="text-align: right;">1.9%</td>
+<td style="text-align: right;">0.010</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2,646.05</td>
+<td style="text-align: right;">2,534.72</td>
+<td style="text-align: right;">2,660.02</td>
+<td style="text-align: right;">4.7%</td>
+<td style="text-align: right;">0.026</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2,685.60</td>
+<td style="text-align: right;">2,671.92</td>
+<td style="text-align: right;">2,686.30</td>
+<td style="text-align: right;">0.5%</td>
+<td style="text-align: right;">0.003</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2,664.08</td>
+<td style="text-align: right;">2,501.92</td>
+<td style="text-align: right;">2,675.60</td>
+<td style="text-align: right;">6.5%</td>
+<td style="text-align: right;">0.037</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">8,320.56</td>
+<td style="text-align: right;">7,967.19</td>
+<td style="text-align: right;">8,573.17</td>
+<td style="text-align: right;">7.3%</td>
+<td style="text-align: right;">0.037</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>ingest rels/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">8,121.32</td>
+<td style="text-align: right;">7,268.58</td>
+<td style="text-align: right;">8,323.48</td>
+<td style="text-align: right;">13.0%</td>
+<td style="text-align: right;">0.071</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="throughput-across-runs">Throughput, across runs</h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Metric</th>
+<th style="text-align: right;">Runs</th>
+<th style="text-align: right;">Median</th>
+<th style="text-align: right;">Min</th>
+<th style="text-align: right;">Max</th>
+<th style="text-align: right;">Spread</th>
+<th style="text-align: right;">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">608.20</td>
+<td style="text-align: right;">607.63</td>
+<td style="text-align: right;">624.60</td>
+<td style="text-align: right;">2.8%</td>
+<td style="text-align: right;">0.016</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">776.93</td>
+<td style="text-align: right;">776.77</td>
+<td style="text-align: right;">782.50</td>
+<td style="text-align: right;">0.7%</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr>
+<td><code>falkordb @ 1g</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">724.80</td>
+<td style="text-align: right;">719.03</td>
+<td style="text-align: right;">731.50</td>
+<td style="text-align: right;">1.7%</td>
+<td style="text-align: right;">0.009</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">620.33</td>
+<td style="text-align: right;">593.13</td>
+<td style="text-align: right;">622.17</td>
+<td style="text-align: right;">4.7%</td>
+<td style="text-align: right;">0.027</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">766.47</td>
+<td style="text-align: right;">739.33</td>
+<td style="text-align: right;">793.73</td>
+<td style="text-align: right;">7.1%</td>
+<td style="text-align: right;">0.035</td>
+</tr>
+<tr>
+<td><code>falkordb @ 2g</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">684.83</td>
+<td style="text-align: right;">651.37</td>
+<td style="text-align: right;">722.77</td>
+<td style="text-align: right;">10.4%</td>
+<td style="text-align: right;">0.052</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">610.07</td>
+<td style="text-align: right;">609.87</td>
+<td style="text-align: right;">611.63</td>
+<td style="text-align: right;">0.3%</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">725.37</td>
+<td style="text-align: right;">706.23</td>
+<td style="text-align: right;">757.27</td>
+<td style="text-align: right;">7.0%</td>
+<td style="text-align: right;">0.035</td>
+</tr>
+<tr>
+<td><code>falkordb @ 512m</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">714.87</td>
+<td style="text-align: right;">667.17</td>
+<td style="text-align: right;">747.63</td>
+<td style="text-align: right;">11.3%</td>
+<td style="text-align: right;">0.057</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">63.17</td>
+<td style="text-align: right;">62.50</td>
+<td style="text-align: right;">63.97</td>
+<td style="text-align: right;">2.3%</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">63.50</td>
+<td style="text-align: right;">62.10</td>
+<td style="text-align: right;">63.90</td>
+<td style="text-align: right;">2.8%</td>
+<td style="text-align: right;">0.015</td>
+</tr>
+<tr>
+<td><code>kuzu</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">63.33</td>
+<td style="text-align: right;">61.47</td>
+<td style="text-align: right;">63.90</td>
+<td style="text-align: right;">3.8%</td>
+<td style="text-align: right;">0.020</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">194.30</td>
+<td style="text-align: right;">189.10</td>
+<td style="text-align: right;">200.00</td>
+<td style="text-align: right;">5.6%</td>
+<td style="text-align: right;">0.028</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">181.33</td>
+<td style="text-align: right;">172.53</td>
+<td style="text-align: right;">182.00</td>
+<td style="text-align: right;">5.2%</td>
+<td style="text-align: right;">0.030</td>
+</tr>
+<tr>
+<td><code>memgraph @ 1g</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">181.93</td>
+<td style="text-align: right;">158.23</td>
+<td style="text-align: right;">190.23</td>
+<td style="text-align: right;">17.6%</td>
+<td style="text-align: right;">0.094</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">196.60</td>
+<td style="text-align: right;">187.40</td>
+<td style="text-align: right;">201.10</td>
+<td style="text-align: right;">7.0%</td>
+<td style="text-align: right;">0.036</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">179.97</td>
+<td style="text-align: right;">167.83</td>
+<td style="text-align: right;">181.50</td>
+<td style="text-align: right;">7.6%</td>
+<td style="text-align: right;">0.042</td>
+</tr>
+<tr>
+<td><code>memgraph @ 2g</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">187.77</td>
+<td style="text-align: right;">171.20</td>
+<td style="text-align: right;">190.43</td>
+<td style="text-align: right;">10.2%</td>
+<td style="text-align: right;">0.057</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">193.83</td>
+<td style="text-align: right;">191.70</td>
+<td style="text-align: right;">195.07</td>
+<td style="text-align: right;">1.7%</td>
+<td style="text-align: right;">0.009</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">175.00</td>
+<td style="text-align: right;">166.47</td>
+<td style="text-align: right;">177.67</td>
+<td style="text-align: right;">6.4%</td>
+<td style="text-align: right;">0.034</td>
+</tr>
+<tr>
+<td><code>memgraph @ 512m</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">149.73</td>
+<td style="text-align: right;">147.47</td>
+<td style="text-align: right;">183.07</td>
+<td style="text-align: right;">23.8%</td>
+<td style="text-align: right;">0.125 ⚠</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">241.57</td>
+<td style="text-align: right;">233.63</td>
+<td style="text-align: right;">260.63</td>
+<td style="text-align: right;">11.2%</td>
+<td style="text-align: right;">0.057</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">194.10</td>
+<td style="text-align: right;">187.40</td>
+<td style="text-align: right;">199.20</td>
+<td style="text-align: right;">6.1%</td>
+<td style="text-align: right;">0.031</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 1g</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">186.13</td>
+<td style="text-align: right;">179.47</td>
+<td style="text-align: right;">191.47</td>
+<td style="text-align: right;">6.4%</td>
+<td style="text-align: right;">0.032</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>1-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">249.87</td>
+<td style="text-align: right;">246.47</td>
+<td style="text-align: right;">253.70</td>
+<td style="text-align: right;">2.9%</td>
+<td style="text-align: right;">0.014</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>10-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">196.47</td>
+<td style="text-align: right;">194.43</td>
+<td style="text-align: right;">198.90</td>
+<td style="text-align: right;">2.3%</td>
+<td style="text-align: right;">0.011</td>
+</tr>
+<tr>
+<td><code>neo4j-community @ 2g</code></td>
+<td>40-client q/s</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">187.53</td>
+<td style="text-align: right;">181.97</td>
+<td style="text-align: right;">189.83</td>
+<td style="text-align: right;">4.2%</td>
+<td style="text-align: right;">0.022</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="charts">Charts</h3>
+<h4 id="latency-by-workload-arm-a-identical-cgroup-limits">Latency by workload — Arm A, identical cgroup limits</h4>
+<figure><img alt="Latency by workload — Arm A, identical cgroup limits" src="charts/latency-capped.png"></figure>
+<h4 id="latency-by-workload-arm-b-managed-free-tiers">Latency by workload — Arm B, managed free tiers</h4>
+<figure><img alt="Latency by workload — Arm B, managed free tiers" src="charts/latency-managed.png"></figure>
+<h4 id="latency-against-the-container-memory-limit">Latency against the container memory limit</h4>
+<figure><img alt="Latency against the container memory limit" src="charts/memory-sweep.png"></figure>
+<h4 id="sustained-throughput-against-concurrency-arm-a">Sustained throughput against concurrency — Arm A</h4>
+<figure><img alt="Sustained throughput against concurrency — Arm A" src="charts/concurrency-capped.png"></figure>
+<h4 id="sustained-throughput-against-concurrency-arm-b">Sustained throughput against concurrency — Arm B</h4>
+<figure><img alt="Sustained throughput against concurrency — Arm B" src="charts/concurrency-managed.png"></figure>
+<h4 id="server-execution-time-versus-network-time">Server execution time versus network time</h4>
+<figure><img alt="Server execution time versus network time" src="charts/network-split.png"></figure>
+<h4 id="warm-up-curves">Warm-up curves</h4>
+<figure><img alt="Warm-up curves" src="charts/warmup.png"></figure>
+<hr>
+<h2 id="cognodb-cloud-c0-in-detail">CognoDB Cloud c0 in detail</h2>
+<p>Consolidated because CognoDB is the subject of this study. Every figure is
+measured or read from the vendor's own console; none is estimated.</p>
+<h3 id="what-was-measured">What was measured</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Graph held</td>
+<td>161,236 nodes / 381,523 relationships, verified against the manifest</td>
+</tr>
+<tr>
+<td>Ingest</td>
+<td>1,999 rels/s, 191 s wall clock, by driver batching</td>
+</tr>
+<tr>
+<td>Server-side execution</td>
+<td><strong>0.0 ms on all seven workloads</strong> — below Bolt's 1 ms resolution</td>
+</tr>
+<tr>
+<td>Round-trip floor</td>
+<td>238.1 ms warm, 238.9 ms cold</td>
+</tr>
+<tr>
+<td>Query failures</td>
+<td>0 across seven workloads at 1,000 iterations each</td>
+</tr>
+<tr>
+<td>Write workload</td>
+<td>p50 3,871 ms, 3 failures — the only workload that failed</td>
+</tr>
+<tr>
+<td>Sustained throughput</td>
+<td>0.7 q/s at 1 client, 9.5 at 10, 19.4 at 40</td>
+</tr>
+<tr>
+<td>Disk used</td>
+<td>931 MB of 1 GiB (91%)</td>
+</tr>
+<tr>
+<td>Memory (RSS)</td>
+<td>387 MB of 512 MB (76%)</td>
+</tr>
+<tr>
+<td>CPU under load</td>
+<td><strong>pegged at 0.50 of 0.5 vCPU — 100% of the allocation</strong></td>
+</tr>
+<tr>
+<td>Cache hit ratio</td>
+<td>99.7%</td>
+</tr>
+<tr>
+<td>Spill to disk</td>
+<td>0 B</td>
+</tr>
+<tr>
+<td>Rollbacks</td>
+<td>0/s</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="what-the-engine-does-well">What the engine does well</h3>
+<p><strong>Every read workload completed below the protocol's measurement resolution.</strong>
+The three-hop traversal returning 1,000 rows reported the same 0.0 ms of server
+time as a single-row point lookup. Nothing in this study established an upper
+bound on CognoDB's read speed, because nothing it was asked to do took long
+enough to measure over Bolt.</p>
+<p><strong>Bolt compatibility held with no code changes.</strong> The official Neo4j Python
+driver connected to <code>bolt+s://</code> and ran every workload unmodified. The four
+Cypher queries this harness sends CognoDB are byte-identical to the ones it
+sends Neo4j. That claim is checkable in <code>src/gbench/workloads/definitions.py</code>,
+and it is the reason CognoDB and Neo4j share a single adapter with no
+per-target branch.</p>
+<p><strong>The full graph fits, with no cap encountered.</strong> 161,236 nodes and 381,523
+relationships loaded into the free tier without hitting any published or
+unpublished limit. Neo4j AuraDB Free is documented as capping node and
+relationship counts; CognoDB publishes no such cap and none was reached.</p>
+<p><strong>Zero rollbacks, zero disk spill, 99.7% cache hit ratio</strong> across the entire
+run, including the 40-client concurrency sweep.</p>
+<h3 id="what-limits-it">What limits it</h3>
+<p><strong>Disk headroom is thin.</strong> 931 MB of the 1 GiB tier for a graph whose source
+CSVs total 24 MB. Kuzu stores the same graph in 89 MiB — roughly a tenth. This
+also has an operational consequence measured directly during this work: an
+accidental second load without clearing first reached 300,236 nodes and the
+connection dropped mid-write, because two copies cannot fit.</p>
+<p><strong>Under concurrency it is CPU-bound, not network-bound.</strong> At 238 ms of round
+trip, forty clients could sustain roughly 168 q/s if the network were the only
+constraint. CognoDB delivered 19.4, with the console showing CPU at 100% of
+its 0.5 vCPU allocation while memory sat at 76%. The single-client story is
+that the network dominates; the forty-client story is that the burstable CPU
+allocation does.</p>
+<p><strong>The write workload is an outlier.</strong> p50 of 3,871 ms against a 238 ms floor —
+sixteen times the round trip — and the only three query failures in the entire
+run. Reads on this tier and writes on this tier behave differently by more than
+an order of magnitude. <strong>This report does not establish why</strong>; no instrumentation
+of the write path was performed.</p>
+<h3 id="the-free-tier-does-not-serve-the-same-benchmark-twice">The free tier does not serve the same benchmark twice</h3>
+<p>The load that took <strong>191 seconds</strong> in the first run reached <strong>55,000 of 381,523
+relationships in 3 hours 55 minutes</strong> on a second attempt against the same
+instance, emptied beforehand, with identical code and no logged errors — a
+factor of roughly 250 on the same operation.</p>
+<p>CognoDB c0 is a <em>burstable</em> 0.5 vCPU allocation and the console showed it at
+100% of that allocation throughout the first run. Exhausted burst credit is the
+mechanism that fits, but no credit metric is exposed and none was instrumented,
+so <strong>this report does not claim it as the cause</strong>; sustained contention from
+another tenant would look identical from outside.</p>
+<p>The consequence is what matters: this is why the run-to-run variance published
+below covers the containerised arm only. It is also why any single number from
+a free tier should be read as that tier's condition at that moment. Full
+detail in <a href="https://github.com/anantk13/cognodb-graph-benchmark/blob/main/docs/CAVEATS.md">docs/CAVEATS.md</a>.</p>
+<h3 id="operational-observations">Operational observations</h3>
+<p>These are not performance results. They are recorded because they affected how
+the benchmark had to be built.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Observation</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dbms.components()</code> is not implemented</td>
+<td>No way to query the engine version over Bolt; the console's <code>v0.9.11</code> is the only source</td>
+</tr>
+<tr>
+<td>Metrics are console-only</td>
+<td>The footprint row reads "not observable" from the harness's perspective; the figures above come from the dashboard</td>
+</tr>
+<tr>
+<td><code>Max result rows: 50,000</code>, published nowhere but the console</td>
+<td>Every workload in this harness carries an explicit <code>LIMIT</code> so no target silently truncates where another does not</td>
+</tr>
+<tr>
+<td>No API keys or Terraform on the free tier</td>
+<td>Bulk load and teardown cannot be scripted; driver batching is the only automatable path</td>
+</tr>
+<tr>
+<td>Region is fixed at creation</td>
+<td>The instance was created in <code>us-east4</code> before it was established that Aura Free does not offer that region — see <a href="https://github.com/anantk13/cognodb-graph-benchmark/blob/main/docs/CAVEATS.md">caveats</a></td>
+</tr>
+<tr>
+<td>Console reports 380,125 relationships</td>
+<td>The same instance answers 381,523 to a count query; recorded as an unresolved discrepancy</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="analysis">Analysis</h2>
+<h3 id="ingest-the-260-spread-is-a-durability-decision-not-a-speed-contest">Ingest: the 260× spread is a durability decision, not a speed contest</h3>
+<p>Identical method, identical batch size, identical cgroup cap, and the spread
+runs from FalkorDB's 84,196 rels/s to Kuzu's 320.</p>
+<p>What is measured: FalkorDB completes the load in 5 s, Neo4j Community in 47 s,
+Memgraph in 142 s, Kuzu in 1,193 s. Kuzu wrote at roughly 51 KB/s while using
+essentially no CPU — it is I/O-bound, not compute-bound, which points at a
+durability flush per batch rather than slow insertion.</p>
+<p>What is inference, not measurement: the ordering tracks how much each engine
+guarantees per transaction. Kuzu commits and checkpoints every batch. Memgraph
+maintains MVCC snapshots. FalkorDB, built on sparse adjacency matrices over
+Redis, is appending into an in-memory structure. <strong>This harness did not
+instrument any engine's write path, so treat the mechanism as a hypothesis
+consistent with the timings, not as a finding.</strong></p>
+<p>The practical reading: this column measures <em>driver batching</em>, which is the
+only ingest method all six targets share. Every engine has a faster native
+path — <code>COPY FROM</code>, <code>neo4j-admin import</code>, <code>falkordb-bulk-insert</code>, a console
+uploader — and a real migration would use it. The number says how these engines
+compare when forced through the one door they all have, not how fast they can
+be loaded.</p>
+<h3 id="traversals-kuzu-inverts-the-ranking-and-that-is-the-most-informative-result">Traversals: Kuzu inverts the ranking, and that is the most informative result</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Engine</th>
+<th style="text-align: right;">Point lookup</th>
+<th style="text-align: right;">Aggregation</th>
+<th style="text-align: right;">2-hop</th>
+<th style="text-align: right;">3-hop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kuzu</td>
+<td style="text-align: right;"><strong>0.15 ms</strong></td>
+<td style="text-align: right;"><strong>0.99 ms</strong></td>
+<td style="text-align: right;">48.81 ms</td>
+<td style="text-align: right;">50.94 ms</td>
+</tr>
+<tr>
+<td>FalkorDB</td>
+<td style="text-align: right;">0.42 ms</td>
+<td style="text-align: right;">3.27 ms</td>
+<td style="text-align: right;"><strong>0.53 ms</strong></td>
+<td style="text-align: right;"><strong>3.12 ms</strong></td>
+</tr>
+<tr>
+<td>Memgraph</td>
+<td style="text-align: right;">0.38 ms</td>
+<td style="text-align: right;">11.60 ms</td>
+<td style="text-align: right;">1.37 ms</td>
+<td style="text-align: right;">9.19 ms</td>
+</tr>
+<tr>
+<td>Neo4j Community</td>
+<td style="text-align: right;">0.75 ms</td>
+<td style="text-align: right;">3.38 ms</td>
+<td style="text-align: right;">1.81 ms</td>
+<td style="text-align: right;">10.98 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>Kuzu is the fastest engine here on point lookup and aggregation and the
+slowest by ~90× on two-hop traversal. That is not a contradiction; it is what a
+columnar, vectorised engine is for. Scanning a column to group by jurisdiction
+plays to it. Chasing pointers from one seed node does not, because the work is
+a handful of scattered reads rather than a vector of many.</p>
+<p>Read the other way: <strong>FalkorDB is 2× faster than Memgraph and 3.5× faster than
+Neo4j on three-hop traversal while being slower than both on aggregation.</strong> The
+engines are not ordered on a single axis of speed. They are ordered differently
+per workload shape, which is the actual answer to "which is fastest".</p>
+<p>Neo4j winning the aggregation outright — 3.38 ms against Memgraph's 11.60 ms,
+a factor of 3.4 — runs counter to the expectation set by an in-memory engine
+competing against a disk-backed one.</p>
+<h3 id="how-much-of-falkordbs-lead-is-the-engine-less-than-it-looks">How much of FalkorDB's lead is the engine? Less than it looks</h3>
+<p>The client-side numbers make FalkorDB look 3.5x faster than Neo4j on three-hop
+traversal. The server-reported clock says otherwise.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align: right;">client p50</th>
+<th style="text-align: right;">server p50</th>
+<th style="text-align: right;">client + protocol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FalkorDB, 3-hop</td>
+<td style="text-align: right;">3.12 ms</td>
+<td style="text-align: right;"><strong>0.24 ms</strong></td>
+<td style="text-align: right;">2.88 ms</td>
+</tr>
+<tr>
+<td>Neo4j, 3-hop</td>
+<td style="text-align: right;">10.98 ms</td>
+<td style="text-align: right;"><strong>1.00 ms</strong></td>
+<td style="text-align: right;">9.98 ms</td>
+</tr>
+<tr>
+<td>FalkorDB, aggregation</td>
+<td style="text-align: right;">3.27 ms</td>
+<td style="text-align: right;"><strong>2.68 ms</strong></td>
+<td style="text-align: right;">0.59 ms</td>
+</tr>
+<tr>
+<td>Neo4j, aggregation</td>
+<td style="text-align: right;">3.38 ms</td>
+<td style="text-align: right;"><strong>2.00 ms</strong></td>
+<td style="text-align: right;">1.38 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two things fall out.</p>
+<p><strong>Most of the traversal gap is not the database.</strong> About 9 ms of Neo4j's 11 ms
+is driver and protocol overhead, against FalkorDB's 2.9 ms. FalkorDB's engine
+is faster here, but by much less than the client-side column implies -- and
+part of the remaining difference is that the two are driven through different
+client libraries, which is a property of this harness rather than of either
+engine.</p>
+<p><strong>On aggregation the two cannot be separated.</strong> A single run showed Neo4j at
+2.00 ms against FalkorDB's 2.68 ms, and an earlier draft of this analysis
+stated that Neo4j won it. Three runs do not support that:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Engine</th>
+<th>Server p50 across three runs</th>
+<th style="text-align: right;">Median</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Neo4j Community</td>
+<td>2.00, 2.00, <strong>3.00</strong> ms</td>
+<td style="text-align: right;">2.00 ms</td>
+</tr>
+<tr>
+<td>FalkorDB</td>
+<td>2.68, 2.75, 2.69 ms</td>
+<td style="text-align: right;">2.69 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>Neo4j's range overlaps FalkorDB's, and in one run Neo4j was slower than
+FalkorDB's worst. Every Neo4j figure is a whole number because Bolt quantises
+server time to the millisecond, so its true value lies somewhere in
+1.5-3.49 ms against FalkorDB's sub-millisecond 2.68-2.75. <strong>The correct
+statement is that this measurement cannot separate them.</strong></p>
+<p>The claim was retracted by running the suite three times rather than once. It
+is left visible here because a benchmark that quietly deletes its withdrawn
+claims is less trustworthy than one that shows them.</p>
+<p>Two limits on how hard this can be pushed. Bolt reports server time in whole
+milliseconds, so Neo4j's "1.00 ms" is somewhere in 0.5-1.49 ms while FalkorDB
+reports 0.24 ms at sub-millisecond resolution -- the ordering is safe, the
+ratio is not. And <strong>Memgraph does not populate the Bolt field at all</strong>, so it
+cannot be placed on this axis; its server column reads "not reported"
+throughout.</p>
+<h3 id="memory-not-the-binding-constraint-and-the-sweep-says-so">Memory: not the binding constraint, and the sweep says so</h3>
+<p>Every engine is flat across 512 MB, 1 GB and 2 GB — FalkorDB 3.18/3.16/3.12 ms
+on three-hop, Memgraph 9.09/9.17/9.19, Neo4j 10.95/10.98. At 161k nodes the
+working set fits comfortably at the smallest tier, so the 0.5 vCPU cap binds
+and the extra memory buys nothing.</p>
+<p>Memory changes exactly one thing in this study: <strong>whether Neo4j starts at all.</strong>
+Its Docker image ships a 512 MB heap plus a 512 MB page cache against a
+documented 2 GB minimum, and even tuned to 55% of the cap the JVM cannot live
+in 512 MB. Memgraph and FalkorDB, both native-code engines without a managed
+heap, run there without complaint.</p>
+<h3 id="concurrency-two-overload-philosophies-not-one-ranking">Concurrency: two overload philosophies, not one ranking</h3>
+<p>At 0.5 vCPU, adding clients does not add throughput for anyone. Memgraph goes
+200 → 182 → 190 q/s and Neo4j 261 → 199 → 191 as concurrency rises 1 → 10 → 40;
+both are already CPU-saturated at one client, and extra clients only add
+queueing. Latency confirms it — Memgraph's p50 climbs 1.54 → 39.5 → 173 ms.</p>
+<p>FalkorDB looks different (612 → 757 → 723 q/s) but for a reason the throughput
+column hides: <strong>at 40 clients it rejected 1,538 requests with <code>Max pending
+queries exceeded</code></strong>, where Memgraph and Neo4j rejected none. FalkorDB sheds
+load past a bounded queue; the others queue without limit and let latency grow.
+FalkorDB's throughput counts only accepted work. That row compares two
+overload strategies, and neither is wrong.</p>
+<h3 id="the-managed-arm-measures-the-network-until-it-doesnt">The managed arm measures the network, until it doesn't</h3>
+<p>CognoDB's point lookup is 238.3 ms against a 238.1 ms round-trip floor, with
+0.0 ms of server-reported execution time: <strong>0.2 ms of database in a 238 ms
+number.</strong> Aura's floor is 87 ms with 1–8 ms server-side. From this client,
+single-request latency in this arm is a measurement of distance.</p>
+<p>Concurrency separates them. At 238 ms, forty clients could sustain ~168 q/s if
+the network were the only limit; CognoDB delivered <strong>19.4</strong>. Aura reached 264
+against a ~460 ceiling. So CognoDB's free tier is network-bound at one client
+and CPU-bound at forty — and the 0.5 vCPU burstable allocation, not the
+Atlantic, is what caps it under load.</p>
+<p>This is the finding that most changed during the work. "Free-tier benchmarks
+measure the network" is true of the headline latency numbers and false of the
+throughput numbers, and only measuring both makes the difference visible.</p>
+<h3 id="cognodbs-own-metrics-the-footprint-row-filled-in">CognoDB's own metrics — the footprint row, filled in</h3>
+<p>The harness reports CognoDB's footprint as "not observable", because nothing
+about disk or memory is reachable over Bolt. Its console exposes all of it.
+<strong>These figures are read from the vendor's dashboard, not measured by this
+harness</strong>, and are kept separate from the measured tables for that reason.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+<th>What it says</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disk used</td>
+<td><strong>931 MB / 1 GiB</strong></td>
+<td>91% of the tier limit, for a 24 MB CSV pair</td>
+</tr>
+<tr>
+<td>Memory (RSS)</td>
+<td><strong>387 MB / 512 MB</strong></td>
+<td>76% of the cap</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td><strong>peaked at 0.50 / 0.5 vCPU</strong></td>
+<td>pegged at 100% of the cap during the run</td>
+</tr>
+<tr>
+<td>Cache hit ratio</td>
+<td><strong>99.7%</strong></td>
+<td>working set fits in memory; not disk-bound</td>
+</tr>
+<tr>
+<td>Spill to disk</td>
+<td>0 B</td>
+<td>no query exceeded memory</td>
+</tr>
+<tr>
+<td>Rollbacks</td>
+<td>0/s</td>
+<td>no contention failures</td>
+</tr>
+<tr>
+<td>Nodes</td>
+<td>161,236</td>
+<td>matches the manifest exactly</td>
+</tr>
+<tr>
+<td>Relationships</td>
+<td><strong>380,125</strong></td>
+<td><strong>1,398 fewer than the 381,523 the same instance returns to <code>MATCH ()-[r]-&gt;() RETURN count(r)</code></strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Three of these matter.</p>
+<p><strong>931 MB of disk for this graph, against Kuzu's 89 MiB for the identical data —
+about 10x.</strong> It also explains a failure earlier in this work: a re-run that
+loaded a second copy without clearing first reached 300,236 nodes and then
+dropped its connection mid-load. At 931 MB for one copy, two copies cannot fit
+in a 1 GiB tier. The harness now clears before loading, and this is the evidence
+for why that was necessary.</p>
+<p><strong>CPU pegged at 100% of the 0.5 vCPU allocation</strong> during the measurement window,
+while memory sat at 76% and the cache hit ratio held at 99.7%. That is direct
+confirmation of the concurrency finding above: at 40 clients CognoDB is not
+network-bound and not memory-bound, it is out of CPU.</p>
+<p><strong>The relationship count disagrees with the database's own query result.</strong> The
+console reports 380,125; <code>MATCH ()-[r]-&gt;() RETURN count(r)</code> against the same
+instance returns 381,523, which matches the manifest. This report does not
+resolve which is correct -- it may be sampling interval, a counter that lags,
+or a genuine difference in what each path counts. <strong>It is recorded as an
+unexplained discrepancy rather than picked between.</strong> Every measured number in
+this report uses the query result, because that is the number the harness can
+verify.</p>
+<h3 id="what-indexes-existed-on-every-platform">What indexes existed, on every platform</h3>
+<p>The identical <code>(label, property)</code> set was passed to every adapter before any
+measurement:</p>
+<p><code>Entity.node_id</code>, <code>Officer.node_id</code>, <code>Address.node_id</code>, <code>Entity.jurisdiction</code></p>
+<p>CognoDB, Neo4j (both), Memgraph and FalkorDB created all four. <strong>Kuzu created
+none of them as secondary indexes</strong> — it indexes a node table's primary key
+automatically and offers no secondary index, so <code>Entity.jurisdiction</code> is a scan
+there. That is a property of the engine, and it means the filtered-lookup row
+is not like-for-like on Kuzu. It is also why Kuzu's filtered lookup (1.70 ms)
+beating Neo4j's indexed one (6.29 ms) is a columnar-scan result, not an index
+result.</p>
+<h2 id="methodology-errors-avoided-and-where-each-was-first-documented">Methodology errors avoided, and where each was first documented</h2>
+<p>Every row is a real, published, promoted graph-database benchmark.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Crime</th>
+<th>Where it happened</th>
+<th>What this harness does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unequal connection pools</td>
+<td>ArangoDB 2018 gave every database 25 connections and Neo4j <strong>1</strong>. Retracted.</td>
+<td>One constant on the base adapter class; every target gets 50</td>
+</tr>
+<tr>
+<td>Untuned competitor</td>
+<td>TigerGraph ran Neo4j Community with <strong>no index</strong> on the property it filtered</td>
+<td>The same <code>(label, property)</code> list goes to every adapter's <code>create_schema</code></td>
+</tr>
+<tr>
+<td>Cherry-picked percentile</td>
+<td>Memgraph published a 120× p99 win; Neo4j had won the mean, p50, p90 <strong>and p95</strong></td>
+<td>Mean, stdev, p50, p95 and confidence intervals all published</td>
+</tr>
+<tr>
+<td>Harness competitors cannot run</td>
+<td>Memgraph's benchmark harness is BSL-licensed</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>One hard-coded start node</td>
+<td>TigerGraph</td>
+<td>Seeded pool of 5,000, same sequence on every target</td>
+</tr>
+<tr>
+<td>Cold JVM as steady state</td>
+<td>ArangoDB — 400 ms first run, 77 ms second</td>
+<td>Warm-up curve retained and published</td>
+</tr>
+<tr>
+<td>Undisclosed hardware</td>
+<td>FalkorDB ran on a GitHub Actions runner; ArangoDB on a 2009 HP DL360</td>
+<td>Host, guest, vCPU, RAM and enforced cgroup values in every result file</td>
+</tr>
+<tr>
+<td>Claiming a cap that was never applied</td>
+<td>—</td>
+<td><code>cpu.max</code> and <code>memory.max</code> read from <strong>inside</strong> the running container</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2 id="hosted-results">Hosted results</h2>
+<p>The full results matrix, charts and methodology summary are also published as a
+static page, generated from the same raw output as everything else:</p>
+<pre><code class="language-bash">make site      # writes site/index.html plus the charts
+</code></pre>
+<p>No build step, no framework, no client-side data fetching — the page can be
+opened straight from the filesystem and shows exactly what the deployed version
+shows.</p>
+<h2 id="reproducing-these-results">Reproducing these results</h2>
+<p>Requires Docker (or Colima) and <code>uv</code>. Free-tier accounts for CognoDB and Neo4j
+Aura are needed only for Arm B.</p>
+<pre><code class="language-bash">make setup           # venv + pinned dependencies, creates .env
+# fill in .env with your own connection details
+make data            # download the ICIJ archive, build the subgraph
+make probe           # which engines boot inside which memory caps
+make bench           # both arms
+make report          # regenerate results/RESULTS.md
+</code></pre>
+<p>No connection URI or password appears anywhere in this repository.
+<code>config/targets.yaml</code> names the environment variables; <code>.env</code> holds the values
+and is gitignored. A target whose variables are unset is skipped with an
+explanation printed, never run against a placeholder.</p>
+<h2 id="licence-and-attribution">Licence and attribution</h2>
+<p>MIT — see <a href="https://github.com/anantk13/cognodb-graph-benchmark/blob/main/LICENSE">LICENSE</a>.</p>
+<p>Deliberate, and stated because it is part of the methodology: Memgraph's
+benchmark harness is BSL-licensed, which bars the competitors it names from
+re-running it, and that is a documented criticism of their results. Anyone,
+including any vendor measured here, can re-run this.</p>
+<p>Dataset © ICIJ, under ODbL 1.0 (database) and CC BY-SA 3.0 (contents).</p>
+  </main>
+</div>
 
 <footer>
-  <div>Full results matrix, methodology, caveats and the harness itself:
-  <a href="https://github.com/anantk13/cognodb-graph-benchmark">https://github.com/anantk13/cognodb-graph-benchmark</a></div>
+  <div>This page is generated from the repository's README by <code>make site</code>, whose
+  results tables are themselves generated from the raw per-iteration output. The page, the
+  repository and the raw data cannot disagree.</div>
   <div>Dataset © ICIJ — ODbL 1.0 (database), CC BY-SA 3.0 (contents). Harness MIT-licensed, so any
   vendor measured here can re-run it.</div>
+  <div><a href="https://github.com/anantk13/cognodb-graph-benchmark">https://github.com/anantk13/cognodb-graph-benchmark</a></div>
 </footer>
 
 </div>
+
+<script>
+// Highlights the contents entry for whichever section is currently in view.
+// Uses IntersectionObserver rather than a scroll handler so it costs nothing
+// while the reader is not scrolling.
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  if (!links.length || !('IntersectionObserver' in window)) return;
+
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+
+  var targets = Object.keys(byId)
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+
+  var visible = new Set();
+  function paint() {
+    var first = targets.find(function (t) { return visible.has(t.id); });
+    links.forEach(function (a) { a.classList.remove('on'); });
+    if (first && byId[first.id]) {
+      byId[first.id].classList.add('on');
+      byId[first.id].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) visible.add(e.target.id); else visible.delete(e.target.id);
+    });
+    paint();
+  }, { rootMargin: '-8% 0px -70% 0px', threshold: 0 });
+
+  targets.forEach(function (t) { io.observe(t); });
+})();
+</script>
+
 </body>
 </html>

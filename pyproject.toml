@@ -21,6 +21,9 @@ dependencies = [
     "numpy==2.2.2",
     "matplotlib==3.10.0",
     "rich==13.9.4",
+    # Renders the README into the static site, so the page and the repository
+    # cannot present different numbers.
+    "markdown==3.7",
 ]
 
 [project.scripts]
