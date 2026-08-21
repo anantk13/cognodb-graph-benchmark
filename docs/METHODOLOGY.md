@@ -22,17 +22,27 @@ Those tiers span 100 MB to 4 GB. Comparing them directly and calling it a
 resource-controlled benchmark would be the exact methodology error the brief
 warns against.
 
-## Two arms
+## Two arms, both anchored on CognoDB's specification
 
-**Arm A -- spec parity.** Every engine in a container with identical cgroup CPU
-and memory limits, on one host, with no network in the path. This is where
-"same resources everywhere" is actually achieved, and it is the primary result.
+**Arm A -- CognoDB's envelope, imposed on every other engine.** The cgroup
+limits are not arbitrary: **0.5 vCPU and 512 MB is CognoDB c0's advertised
+specification**, and every other engine is held to it. The arm asks a single
+question -- what can a graph database do inside the envelope CognoDB ships as
+its free tier -- and it is the primary result because it is the only place
+"same resources everywhere" is actually achieved.
 
-**Arm B -- managed reality.** The two genuinely free managed tiers, as shipped.
-Explicitly *not* resource-equal. It answers a different and equally real
-question: what does a developer actually get for nothing.
+CognoDB itself cannot appear in this arm. It is a managed service with no
+self-hosted distribution, so it runs on its real c0 instance rather than in a
+container. That is a limitation of what can be containerised, not a choice
+about emphasis: CognoDB sets the resource target the arm enforces.
 
-The two are reported separately and never averaged.
+**Arm B -- the managed tiers as shipped.** CognoDB c0 and Neo4j AuraDB Free,
+the only two managed graph platforms surveyed that still offer a free tier
+surviving a week. Explicitly *not* resource-equal, and network is in the path.
+It answers what a developer actually receives.
+
+The two arms are reported separately and never averaged. A container on
+loopback and an instance 240 ms away are not comparable on client latency.
 
 ## What is held identical
 
@@ -53,8 +63,8 @@ Neo4j's Docker image ships a 512 MB heap plus a 512 MB page cache -- more than
 engine at CognoDB's advertised 512 MB would therefore have produced a DNF for
 the single most important comparison in the study.
 
-Rather than raise the cap for one engine, the cap is swept: **512 MB, 1 GB,
-2 GB**, with each engine's internal memory budget set to the *same fraction*
+Rather than raise the cap for one engine, the cap is swept upward from
+CognoDB's specification: **512 MB (CognoDB c0 parity), 1 GB, 2 GB**, with each engine's internal memory budget set to the *same fraction*
 (55%) of its container limit. Left at their defaults those budgets are wildly
 unequal -- Neo4j takes a fixed 512M + 512M regardless of the cgroup, Memgraph
 takes 90-100% of detected RAM, Kuzu takes 80% -- and that inequality would
