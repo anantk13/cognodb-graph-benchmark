@@ -207,7 +207,13 @@ def _readme_html(readme: Path) -> str:
     import markdown
 
     text = readme.read_text()
-    text = re.sub(r"\A# .*?\n", "", text, count=1)  # the page has its own H1
+    # Everything before the first section is dropped. The README opens with an
+    # introduction that the page header already carries almost verbatim -- the
+    # subject, the resource envelope, and the note that every figure is
+    # generated rather than typed -- so on the deployed page it read as the
+    # same paragraph twice.
+    first_section = text.find("\n## ")
+    text = text[first_section:] if first_section != -1 else re.sub(r"\A# .*?\n", "", text, count=1)
     text = text.replace("](results/charts/", "](charts/")
     text = text.replace("<!-- RESULTS:START -->", "").replace("<!-- RESULTS:END -->", "")
 
