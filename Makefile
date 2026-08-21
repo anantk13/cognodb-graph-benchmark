@@ -7,7 +7,7 @@ PY    := .venv/bin/python
 UV    := uv
 
 .DEFAULT_GOAL := help
-.PHONY: help setup data probe smoke bench bench-capped bench-managed report lint test clean clean-docker
+.PHONY: help setup data probe smoke bench bench-capped bench-managed report site lint test clean clean-docker
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -42,6 +42,9 @@ bench-managed: ## Arm B -- the managed free tiers as shipped
 
 report: ## Regenerate the README results tables and charts from raw results
 	$(PY) -m gbench report
+
+site: report ## Build the static results site into site/
+	$(PY) -m gbench site
 
 lint: ## Lint and format-check
 	$(UV) run ruff check src/ scripts/

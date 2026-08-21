@@ -32,6 +32,13 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("report", help="regenerate tables and charts from raw results")
 
+    site = sub.add_parser("site", help="build the static results site from raw results")
+    site.add_argument(
+        "--repo",
+        default="https://github.com/anantk13/cognodb-graph-benchmark",
+        help="repository URL linked from the page footer",
+    )
+
     args = parser.parse_args(argv)
     config = cfg.load()
 
@@ -39,6 +46,18 @@ def main(argv: list[str] | None = None) -> int:
         from gbench.report.generate import generate
 
         generate(ROOT / "results" / "raw", ROOT / "results")
+        return 0
+
+    if args.command == "site":
+        from gbench.report.site import build
+
+        path = build(
+            ROOT / "results" / "raw",
+            ROOT / "results" / "charts",
+            ROOT / "site",
+            repo_url=args.repo,
+        )
+        print(f"wrote {path}")
         return 0
 
     for skipped in config.skipped:

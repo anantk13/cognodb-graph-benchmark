@@ -21,5 +21,8 @@ results/raw/
 # Kuzu embedded database files
 *.kuzu/
 
+# Vercel
+.vercel/
+
 # OS
 .DS_Store

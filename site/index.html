@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmarking CognoDB Cloud against four other graph databases</title>
+<meta name="description" content="A resource-parity benchmark of five graph databases, with the network separated from the database. Every number generated from raw per-iteration data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #fbfbfc; --panel: #f2f4f7; --panel2: #e9ecf1;
+  --ink: #12161d; --ink2: #545e6c; --ink3: #7c8697;
+  --rule: #dde1e8; --rule2: #c3cad6;
+  --accent: #2a78d6; --warn: #8f5406; --bad: #9c2c3e;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --panel: #161a21; --panel2: #1d222b;
+    --ink: #e4e8ef; --ink2: #98a3b3; --ink3: #6d7787;
+    --rule: #242a34; --rule2: #333b47;
+    --accent: #6aa9f0; --warn: #e0a64f; --bad: #e5798b;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--sans); font-size: 17px; line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(20px,5vw,48px) 96px; }
+.col { max-width: 68ch; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+code { font-family: var(--mono); font-size: .88em; background: var(--panel);
+  border: 1px solid var(--rule); border-radius: 3px; padding: .06em .34em; }
+
+header { border-bottom: 2px solid var(--ink); padding: clamp(48px,8vw,88px) 0 30px; margin-bottom: 8px; }
+.eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink3); margin-bottom: 18px; }
+h1 { font-size: clamp(30px,5.2vw,52px); line-height: 1.06; letter-spacing: -.025em;
+  font-weight: 700; margin: 0 0 18px; max-width: 20ch; text-wrap: balance; }
+.lede { font-size: clamp(17px,2.1vw,20px); color: var(--ink2); max-width: 62ch; margin: 0; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit,minmax(168px,1fr));
+  gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 34px 0 0; }
+.tile { background: var(--bg); padding: 16px 18px; }
+.tile-v { font-family: var(--mono); font-size: 25px; font-weight: 600;
+  letter-spacing: -.02em; color: var(--accent); }
+.tile-k { font-size: 13px; font-weight: 600; margin-top: 2px; }
+.tile-n { font-size: 12.5px; color: var(--ink3); line-height: 1.45; margin-top: 4px; }
+
+section { padding-top: 64px; }
+h2 { font-size: clamp(23px,3.2vw,32px); line-height: 1.15; letter-spacing: -.02em;
+  font-weight: 700; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 18px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -.01em; }
+.sub { color: var(--ink3); font-size: 15px; margin: 0 0 22px; max-width: 66ch; }
+p { margin: 0 0 1.05em; }
+
+.tw { overflow-x: auto; border: 1px solid var(--rule2); margin: 18px 0 26px; }
+table { border-collapse: collapse; width: 100%; min-width: 620px;
+  font-size: 14.5px; font-variant-numeric: tabular-nums; }
+thead th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink2); text-align: left;
+  padding: 11px 14px; background: var(--panel2); border-bottom: 1px solid var(--rule2);
+  white-space: nowrap; }
+tbody th { text-align: left; font-weight: 600; font-size: 14px; }
+tbody th, tbody td { padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+tbody tr:nth-child(even) { background: var(--panel); }
+.num { text-align: right; font-family: var(--mono); font-size: 13px; }
+.dnf { color: var(--bad); font-family: var(--mono); font-size: 12.5px; font-weight: 600; }
+.muted { color: var(--ink3); }
+
+figure { margin: 0 0 34px; }
+figure img { width: 100%; height: auto; border: 1px solid var(--rule); background: #fcfcfb; }
+figcaption { font-size: 14px; color: var(--ink3); margin-top: 10px; line-height: 1.5; }
+
+.note { border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; margin: 24px 0;
+  max-width: 68ch; }
+.note.warn { border-color: var(--warn); }
+
+footer { margin-top: 84px; padding-top: 24px; border-top: 2px solid var(--ink);
+  font-family: var(--mono); font-size: 12.5px; color: var(--ink3); line-height: 1.8; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Graph database benchmark · August 2026</div>
+  <h1>Benchmarking CognoDB Cloud against four other graph databases</h1>
+  <p class="lede">CognoDB Cloud's free tier is the subject of this study and the yardstick for its
+  design. Its advertised specification — 0.5&nbsp;vCPU, 512&nbsp;MB RAM, 1&nbsp;GiB disk — is the
+  resource envelope every other engine is held to. Every figure below is generated from raw
+  per-iteration data; none is typed by hand.</p>
+  <div class="tiles"><div class="tile"><div class="tile-v">161,236</div><div class="tile-k">nodes</div><div class="tile-n">ICIJ Paradise Papers — Appleby</div></div><div class="tile"><div class="tile-v">381,523</div><div class="tile-k">relationships</div><div class="tile-n">loaded identically into every target</div></div><div class="tile"><div class="tile-v">255×</div><div class="tile-k">ingest spread</div><div class="tile-n">FalkorDB against Kuzu</div></div><div class="tile"><div class="tile-v">0.0 ms</div><div class="tile-k">CognoDB server time</div><div class="tile-n">on all seven workloads — under Bolt&#x27;s resolution</div></div><div class="tile"><div class="tile-v">238 ms</div><div class="tile-k">round-trip floor</div><div class="tile-n">of which 0.2 ms was the database</div></div><div class="tile"><div class="tile-v">3</div><div class="tile-k">independent runs</div><div class="tile-n">median coefficient of variation 0.024</div></div></div>
+</header>
+
+<section>
+  <h2>Ingest</h2>
+  <p class="sub">Driver batching at an identical batch size on every target. Each engine's faster
+  native loader was deliberately not used: the managed targets have no equivalent, so a column
+  mixing four mechanisms would compare nothing.</p>
+  <div class="tw"><table><thead><tr><th scope="col">Target</th><th scope="col">Relationships/s</th><th scope="col">Nodes/s</th><th scope="col">Wall clock</th></tr></thead><tbody><tr><th scope="row">falkordb @ 2g</th><td class="num">84,979</td><td class="num">35,913</td><td class="num">4 s</td></tr><tr><th scope="row">falkordb @ 1g</th><td class="num">83,181</td><td class="num">35,153</td><td class="num">5 s</td></tr><tr><th scope="row">falkordb @ 512m</th><td class="num">80,903</td><td class="num">34,191</td><td class="num">5 s</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td class="num">8,321</td><td class="num">3,516</td><td class="num">46 s</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td class="num">7,269</td><td class="num">3,072</td><td class="num">52 s</td></tr><tr><th scope="row">neo4j-aura-free</th><td class="num">4,194</td><td class="num">1,773</td><td class="num">91 s</td></tr><tr><th scope="row">memgraph @ 2g</th><td class="num">2,686</td><td class="num">1,135</td><td class="num">142 s</td></tr><tr><th scope="row">memgraph @ 1g</th><td class="num">2,535</td><td class="num">1,071</td><td class="num">151 s</td></tr><tr><th scope="row">memgraph @ 512m</th><td class="num">2,502</td><td class="num">1,057</td><td class="num">152 s</td></tr><tr><th scope="row">cognodb-c0</th><td class="num">1,999</td><td class="num">845</td><td class="num">191 s</td></tr><tr><th scope="row">kuzu</th><td class="num">318</td><td class="num">134</td><td class="num">1,201 s</td></tr><tr><th scope="row">neo4j-community @ 512m</th><td class="dnf" colspan="3">DNF — out of memory</td></tr></tbody></table></div>
+</section>
+
+<section>
+  <h2>Latency — Arm A, identical cgroup limits</h2>
+  <p class="sub">Every engine in a container capped at CognoDB c0's advertised specification, with
+  no network in the path. p50 in milliseconds. The enforced <code>cpu.max</code> and
+  <code>memory.max</code> were read from inside each running container and recorded.</p>
+  <div class="tw"><table><thead><tr><th scope="col">Target</th><th>Point lookup</th><th>Filtered lookup (indexed)</th><th>1-hop traversal</th><th>2-hop traversal</th><th>3-hop traversal</th><th>Aggregation (group-by)</th><th>Write (indexed update)</th></tr></thead><tbody><tr><th scope="row">falkordb @ 1g</th><td class="num">0.43</td><td class="num">2.46</td><td class="num">0.44</td><td class="num">0.50</td><td class="num">3.08</td><td class="num">3.29</td><td class="num">0.44</td></tr><tr><th scope="row">falkordb @ 2g</th><td class="num">0.41</td><td class="num">2.46</td><td class="num">0.45</td><td class="num">0.53</td><td class="num">3.08</td><td class="num">3.25</td><td class="num">0.43</td></tr><tr><th scope="row">falkordb @ 512m</th><td class="num">0.43</td><td class="num">2.51</td><td class="num">0.45</td><td class="num">0.54</td><td class="num">3.13</td><td class="num">3.30</td><td class="num">0.43</td></tr><tr><th scope="row">kuzu</th><td class="num">0.16</td><td class="num">1.74</td><td class="num">0.62</td><td class="num">47.66</td><td class="num">50.74</td><td class="num">0.97</td><td class="num">0.28</td></tr><tr><th scope="row">memgraph @ 1g</th><td class="num">0.40</td><td class="num">5.62</td><td class="num">0.46</td><td class="num">1.41</td><td class="num">9.31</td><td class="num">11.87</td><td class="num">0.42</td></tr><tr><th scope="row">memgraph @ 2g</th><td class="num">0.41</td><td class="num">5.55</td><td class="num">0.47</td><td class="num">1.39</td><td class="num">9.27</td><td class="num">11.53</td><td class="num">0.42</td></tr><tr><th scope="row">memgraph @ 512m</th><td class="num">0.40</td><td class="num">5.73</td><td class="num">0.48</td><td class="num">1.50</td><td class="num">9.39</td><td class="num">11.76</td><td class="num">0.43</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td class="num">0.83</td><td class="num">11.36</td><td class="num">0.81</td><td class="num">2.13</td><td class="num">11.55</td><td class="num">3.70</td><td class="num">0.78</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td class="num">0.77</td><td class="num">6.23</td><td class="num">0.74</td><td class="num">1.84</td><td class="num">11.14</td><td class="num">3.53</td><td class="num">0.87</td></tr><tr><th scope="row">neo4j-community @ 512m</th><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td><td class="dnf">DNF</td></tr></tbody></table></div>
+
+  <h2>Latency — Arm B, managed free tiers</h2>
+  <p class="sub">Explicitly not resource-equal, and network is in the path. These figures are
+  dominated by round-trip time and should be read alongside the server-execution split below.</p>
+  <div class="tw"><table><thead><tr><th scope="col">Target</th><th>Point lookup</th><th>Filtered lookup (indexed)</th><th>1-hop traversal</th><th>2-hop traversal</th><th>3-hop traversal</th><th>Aggregation (group-by)</th><th>Write (indexed update)</th></tr></thead><tbody><tr><th scope="row">cognodb-c0</th><td class="num">238.26</td><td class="num">310.03</td><td class="num">240.40</td><td class="num">259.91</td><td class="num">739.18</td><td class="num">331.27</td><td class="num">3,871.26</td></tr><tr><th scope="row">neo4j-aura-free</th><td class="num">87.28</td><td class="num">184.61</td><td class="num">87.84</td><td class="num">91.68</td><td class="num">201.64</td><td class="num">97.08</td><td class="num">91.91</td></tr></tbody></table></div>
+
+  <div class="note">
+    <p>CognoDB reported <b>0.0&nbsp;ms of server-side execution on all seven workloads</b>,
+    including the three-hop traversal returning 1,000 rows. Bolt reports server time in whole
+    milliseconds, so this is an upper bound of under 1&nbsp;ms rather than a precise figure — but
+    nothing in this study established an upper bound on its read speed, because nothing it was
+    asked to do took long enough to measure.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Run-to-run variance</h2>
+  <p class="sub">The containerised arm was executed three times. A difference between two engines
+  smaller than either one's own spread is not a difference. Measurements marked ⚠ exceed a
+  coefficient of variation of 0.10 and should not be compared across engines without accounting
+  for the spread. Least stable first.</p>
+  <div class="tw"><table><thead><tr><th scope="col">Target</th><th scope="col">Metric</th><th scope="col">Median</th><th scope="col">Min</th><th scope="col">Max</th><th scope="col">Spread</th><th scope="col">CV</th></tr></thead><tbody><tr><th scope="row">neo4j-community @ 1g</th><td>filtered_lookup p50 ms</td><td class="num">6.33</td><td class="num">6.10</td><td class="num">11.36</td><td class="num">83.1%</td><td class="num">0.375 ⚠</td></tr><tr><th scope="row">memgraph @ 512m</th><td>40-client q/s</td><td class="num">149.73</td><td class="num">147.47</td><td class="num">183.07</td><td class="num">23.8%</td><td class="num">0.125 ⚠</td></tr><tr><th scope="row">falkordb @ 1g</th><td>ingest rels/s</td><td class="num">83,180.98</td><td class="num">69,428.65</td><td class="num">83,463.45</td><td class="num">16.9%</td><td class="num">0.102 ⚠</td></tr><tr><th scope="row">memgraph @ 1g</th><td>40-client q/s</td><td class="num">181.93</td><td class="num">158.23</td><td class="num">190.23</td><td class="num">17.6%</td><td class="num">0.094</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>hop1 p50 ms</td><td class="num">0.81</td><td class="num">0.75</td><td class="num">0.86</td><td class="num">14.7%</td><td class="num">0.074</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td>ingest rels/s</td><td class="num">8,121.32</td><td class="num">7,268.58</td><td class="num">8,323.48</td><td class="num">13.0%</td><td class="num">0.071</td></tr><tr><th scope="row">memgraph @ 512m</th><td>point_lookup p50 ms</td><td class="num">0.40</td><td class="num">0.37</td><td class="num">0.42</td><td class="num">13.0%</td><td class="num">0.066</td></tr><tr><th scope="row">neo4j-community @ 2g</th><td>write_tag p50 ms</td><td class="num">0.79</td><td class="num">0.78</td><td class="num">0.87</td><td class="num">11.7%</td><td class="num">0.063</td></tr><tr><th scope="row">falkordb @ 1g</th><td>point_lookup p50 ms</td><td class="num">0.39</td><td class="num">0.38</td><td class="num">0.43</td><td class="num">11.7%</td><td class="num">0.061</td></tr><tr><th scope="row">falkordb @ 512m</th><td>40-client q/s</td><td class="num">714.87</td><td class="num">667.17</td><td class="num">747.63</td><td class="num">11.3%</td><td class="num">0.057</td></tr><tr><th scope="row">memgraph @ 2g</th><td>40-client q/s</td><td class="num">187.77</td><td class="num">171.20</td><td class="num">190.43</td><td class="num">10.2%</td><td class="num">0.057</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>hop2 p50 ms</td><td class="num">2.00</td><td class="num">1.90</td><td class="num">2.13</td><td class="num">11.4%</td><td class="num">0.057</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>1-client q/s</td><td class="num">241.57</td><td class="num">233.63</td><td class="num">260.63</td><td class="num">11.2%</td><td class="num">0.057</td></tr><tr><th scope="row">neo4j-community @ 1g</th><td>point_lookup p50 ms</td><td class="num">0.83</td><td class="num">0.78</td><td class="num">0.87</td><td class="num">10.8%</td><td class="num">0.054</td></tr><tr><th scope="row">falkordb @ 2g</th><td>40-client q/s</td><td class="num">684.83</td><td class="num">651.37</td><td class="num">722.77</td><td class="num">10.4%</td><td class="num">0.052</td></tr><tr><th scope="row">memgraph @ 512m</th><td>hop2 p50 ms</td><td class="num">1.38</td><td class="num">1.37</td><td class="num">1.50</td><td class="num">9.7%</td><td class="num">0.051</td></tr><tr><th scope="row">memgraph @ 2g</th><td>write_tag p50 ms</td><td class="num">0.42</td><td class="num">0.42</td><td class="num">0.46</td><td class="num">8.7%</td><td class="num">0.046</td></tr><tr><th scope="row">memgraph @ 2g</th><td>10-client q/s</td><td class="num">179.97</td><td class="num">167.83</td><td class="num">181.50</td><td class="num">7.6%</td><td class="num">0.042</td></tr><tr><th scope="row">memgraph @ 2g</th><td>point_lookup p50 ms</td><td class="num">0.41</td><td class="num">0.38</td><td class="num">0.41</td><td class="num">7.3%</td><td class="num">0.041</td></tr><tr><th scope="row">memgraph @ 1g</th><td>hop2 p50 ms</td><td class="num">1.41</td><td class="num">1.38</td><td class="num">1.49</td><td class="num">7.9%</td><td class="num">0.041</td></tr></tbody></table></div>
+
+  <div class="note warn">
+    <p><b>One claim did not survive.</b> A single run showed Neo4j's server-side aggregation at
+    2.00&nbsp;ms against FalkorDB's 2.68&nbsp;ms, and an earlier draft stated that Neo4j won it.
+    Across three runs Neo4j measured 2.00, 2.00 and 3.00&nbsp;ms against FalkorDB's 2.68, 2.75 and
+    2.69 — overlapping ranges, with Neo4j slower than FalkorDB's worst in one run. The measurement
+    cannot separate them. The retraction is left visible in the repository rather than deleted.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Charts</h2>
+  <p class="sub">Rendered from the same raw output as the tables. A did-not-finish is drawn as a
+  labelled gap, never as a zero.</p>
+  <figure><img src="charts/concurrency-capped.png" alt="Throughput against concurrency — Arm A" loading="lazy"><figcaption><b>Throughput against concurrency — Arm A</b> — At 0.5 vCPU, extra clients add queueing rather than throughput.</figcaption></figure><figure><img src="charts/concurrency-managed.png" alt="Throughput against concurrency — Arm B" loading="lazy"><figcaption><b>Throughput against concurrency — Arm B</b> — CognoDB becomes CPU-bound where the network alone would allow more.</figcaption></figure><figure><img src="charts/latency-capped.png" alt="Latency by workload — identical cgroup limits" loading="lazy"><figcaption><b>Latency by workload — identical cgroup limits</b> — Arm A. 0.5 vCPU, no network in the path.</figcaption></figure><figure><img src="charts/latency-managed.png" alt="Latency by workload — managed free tiers" loading="lazy"><figcaption><b>Latency by workload — managed free tiers</b> — Arm B. Not resource-equal; dominated by round-trip time.</figcaption></figure><figure><img src="charts/memory-sweep.png" alt="Latency against the memory cap" loading="lazy"><figcaption><b>Latency against the memory cap</b> — Flat across tiers. Only startup depends on memory.</figcaption></figure><figure><img src="charts/network-split.png" alt="Server execution versus network" loading="lazy"><figcaption><b>Server execution versus network</b> — How much of a managed target&#x27;s latency was ever the database.</figcaption></figure><figure><img src="charts/warmup.png" alt="Warm-up curves" loading="lazy"><figcaption><b>Warm-up curves</b> — Published rather than assumed; discarded from the percentiles.</figcaption></figure>
+</section>
+
+<section>
+  <h2>Method, in short</h2>
+  <div class="col">
+    <h3>Two arms, both anchored on CognoDB's specification</h3>
+    <p>Of seven managed graph platforms surveyed, two still offer a free tier that survives a week,
+    and those span 100&nbsp;MB to 4&nbsp;GB. Equal resources across managed free tiers is therefore
+    not achievable. Arm&nbsp;A imposes CognoDB c0's envelope on every other engine via cgroups;
+    Arm&nbsp;B measures the managed tiers as shipped. The two are reported separately and never
+    averaged.</p>
+
+    <h3>The network is separated from the database</h3>
+    <p>Bolt returns server-side execution time independently of what the client observed, and a
+    warmed round-trip floor bounds each target. A <code>RETURN 1</code> against CognoDB costs
+    238&nbsp;ms client-side and 0&nbsp;ms server-side.</p>
+
+    <h3>1,000 iterations, p50 and p95, no p99</h3>
+    <p>A distribution-free confidence interval for p95 is unbounded below n&nbsp;=&nbsp;110, so the
+    commonly suggested 100 iterations yields a p95 with no error bar. The latency client is
+    closed-loop, which distorts p99 by 20× or worse, so no p99 is published from it.</p>
+
+    <h3>Failures are results</h3>
+    <p>Neo4j is OOM-killed at 512&nbsp;MB and that is published as a DNF with its exit code, not
+    omitted. Row counts are compared across targets on every workload — a check that caught four
+    real defects, including one genuine semantic divergence between two Cypher engines, none of
+    which was visible from latency alone.</p>
+  </div>
+</section>
+
+<footer>
+  <div>Full results matrix, methodology, caveats and the harness itself:
+  <a href="https://github.com/anantk13/cognodb-graph-benchmark">https://github.com/anantk13/cognodb-graph-benchmark</a></div>
+  <div>Dataset © ICIJ — ODbL 1.0 (database), CC BY-SA 3.0 (contents). Harness MIT-licensed, so any
+  vendor measured here can re-run it.</div>
+</footer>
+
+</div>
+</body>
+</html>

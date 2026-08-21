@@ -940,6 +940,19 @@ Every row is a real, published, promoted graph-database benchmark.
 
 ---
 
+## Hosted results
+
+The full results matrix, charts and methodology summary are also published as a
+static page, generated from the same raw output as everything else:
+
+```bash
+make site      # writes site/index.html plus the charts
+```
+
+No build step, no framework, no client-side data fetching — the page can be
+opened straight from the filesystem and shows exactly what the deployed version
+shows.
+
 ## Reproducing these results
 
 Requires Docker (or Colima) and `uv`. Free-tier accounts for CognoDB and Neo4j

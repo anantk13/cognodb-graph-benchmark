@@ -43,5 +43,11 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.per-file-ignores]
+# site.py embeds an HTML template as a string literal. A stylesheet link and a
+# few CSS declarations exceed the line limit and cannot be wrapped without
+# changing the markup they produce.
+"src/gbench/report/site.py" = ["E501"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
