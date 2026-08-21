@@ -214,6 +214,14 @@ def _readme_html(readme: Path) -> str:
     # Drop the standalone repository pointers. They are navigation aids for
     # someone reading the README in the repository; on the deployed page the
     # files do not exist and every one of them is a 404.
+    # Whole sections that belong in the repository but not on the page.
+    for heading in _OMIT_SECTIONS:
+        start = text.find(f"\n{heading}")
+        if start == -1:
+            continue
+        following = text.find("\n## ", start + 1)
+        text = text[:start] + (text[following:] if following != -1 else "")
+
     text = re.sub(r"^\*\*→ \[`[^`]+`\]\([^)]+\)\*\*.*(?:\n(?!\n).*)*\n?", "", text, flags=re.M)
     text = re.sub(r"^→ \[`[^`]+`\]\([^)]+\).*(?:\n(?!\n).*)*\n?", "", text, flags=re.M)
 
@@ -255,8 +263,19 @@ _EXPAND = {"results", "analysis"}
 #: a standalone page. Set by `build` before the README is converted.
 _REPO_BLOB = ""
 
-#: Sections omitted from the nav: they are about running the project rather
-#: than about its findings, and a reviewer is not navigating to them.
+#: Sections dropped from the deployed page entirely. They are about obtaining
+#: and running the project rather than about what it found: build commands, a
+#: pointer to the page the reader is already on, and licence text the footer
+#: already carries. They remain in the README, where someone who has cloned the
+#: repository needs them.
+_OMIT_SECTIONS = (
+    "## Hosted results",
+    "## Reproducing these results",
+    "## Licence and attribution",
+)
+
+#: Anchors for the above, so the contents list does not offer a link to a
+#: section that is no longer on the page.
 _SKIP_NAV = {"hosted-results", "reproducing-these-results", "licence-and-attribution"}
 
 

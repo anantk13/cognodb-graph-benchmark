@@ -3849,35 +3849,6 @@ result.</p>
 </tbody>
 </table></div>
 <hr>
-<h2 id="hosted-results">Hosted results</h2>
-<p>The full results matrix, charts and methodology summary are also published as a
-static page, generated from the same raw output as everything else:</p>
-<pre><code class="language-bash">make site      # writes site/index.html plus the charts
-</code></pre>
-<p>No build step, no framework, no client-side data fetching — the page can be
-opened straight from the filesystem and shows exactly what the deployed version
-shows.</p>
-<h2 id="reproducing-these-results">Reproducing these results</h2>
-<p>Requires Docker (or Colima) and <code>uv</code>. Free-tier accounts for CognoDB and Neo4j
-Aura are needed only for Arm B.</p>
-<pre><code class="language-bash">make setup           # venv + pinned dependencies, creates .env
-# fill in .env with your own connection details
-make data            # download the ICIJ archive, build the subgraph
-make probe           # which engines boot inside which memory caps
-make bench           # both arms
-make report          # regenerate results/RESULTS.md
-</code></pre>
-<p>No connection URI or password appears anywhere in this repository.
-<code>config/targets.yaml</code> names the environment variables; <code>.env</code> holds the values
-and is gitignored. A target whose variables are unset is skipped with an
-explanation printed, never run against a placeholder.</p>
-<h2 id="licence-and-attribution">Licence and attribution</h2>
-<p>MIT — see <a href="https://github.com/anantk13/cognodb-graph-benchmark/blob/main/LICENSE">LICENSE</a>.</p>
-<p>Deliberate, and stated because it is part of the methodology: Memgraph's
-benchmark harness is BSL-licensed, which bars the competitors it names from
-re-running it, and that is a documented criticism of their results. Anyone,
-including any vendor measured here, can re-run this.</p>
-<p>Dataset © ICIJ, under ODbL 1.0 (database) and CC BY-SA 3.0 (contents).</p>
   </main>
 </div>
 
