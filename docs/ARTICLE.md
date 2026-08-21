@@ -313,6 +313,62 @@ named had in fact won the mean, the median, p90 *and* p95.
 
 ---
 
+## Running it three times retracted one of my findings
+
+Everything above came from one execution. One run tells you nothing about how
+much a number moves between runs, and a difference smaller than that movement
+is not a difference. So I ran the containerised arm three times.
+
+Across 99 repeated measurements the median coefficient of variation was 0.024 —
+most of this is stable. Three measurements exceeded 10% and are flagged in the
+results. The big ratios were never in danger: FalkorDB's ingest median of
+84,196 rels/s against Memgraph's 2,686 and Kuzu's 318 is orders of magnitude
+outside any spread I measured.
+
+But one claim died.
+
+Earlier I wrote that Neo4j beats FalkorDB on aggregation at the engine level,
+2.00 ms against 2.68 ms, and made a point of it — that reporting client-side
+latency alone would have got the direction wrong. Three runs:
+
+| Engine | Server p50, three runs | Median |
+|---|---|---:|
+| Neo4j Community | 2.00, 2.00, **3.00** ms | 2.00 ms |
+| FalkorDB | 2.68, 2.75, 2.69 ms | 2.69 ms |
+
+The ranges overlap. In one run Neo4j was slower than FalkorDB's worst. And
+every Neo4j figure is a whole number, because Bolt reports server time
+quantised to the millisecond — so Neo4j's true value is somewhere in
+1.5–3.49 ms against FalkorDB's sub-millisecond 2.68–2.75.
+
+**The honest statement is that this measurement cannot separate them.** I have
+left the retraction visible in the repository rather than deleting the claim,
+because a benchmark that quietly removes its withdrawn findings is worth less
+than one that shows them.
+
+## The free tier would not run the benchmark twice
+
+I meant to repeat the managed arm as well. I could not.
+
+CognoDB c0 ingested the full graph in **191 seconds** on the first run. A second
+attempt, twelve hours later, against the same instance, emptied first, with
+identical code and no logged errors, reached **55,000 of 381,523 relationships
+in three hours and fifty-five minutes** before I abandoned it. Roughly 250×
+slower on the same operation, with my client sitting blocked on the server
+using no CPU of its own.
+
+I do not know why. c0 is a *burstable* 0.5 vCPU allocation and the console
+showed it pegged at 100% of that allocation throughout the first run, so
+exhausted burst credit is the mechanism that fits. But no credit policy is
+published, no credit metric is exposed, I did not instrument one, and sustained
+contention from another tenant on the same host would look identical from
+outside. It is a hypothesis, and I have written it up as one.
+
+What I can say without qualification is the thing that matters to anyone else
+benchmarking a free tier: **it may not serve you twice.** A single-run number
+from one measures that tier's condition at that moment, and mine happened to
+come from a run that completed normally.
+
 ## Standing on the shoulders of retracted benchmarks
 
 Almost everything above is a lesson someone else paid for. Every row in this
