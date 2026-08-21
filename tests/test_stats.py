@@ -109,3 +109,36 @@ class TestSummary:
     def test_rejects_empty(self) -> None:
         with pytest.raises(ValueError, match="zero samples"):
             summarise([])
+
+
+class TestVarianceSpread:
+    """Run-to-run variance, which section 7 of the brief names explicitly.
+
+    A single run's 1,000 iterations bound each percentile within that run. They
+    say nothing about variation between runs, and a difference between two
+    engines smaller than either one's own spread is not a difference.
+    """
+
+    def test_spread_and_cv(self) -> None:
+        from gbench.report.variance import Spread
+
+        s = Spread("memgraph", "hop3 p50 ms", [9.09, 11.80, 9.20])
+        assert s.runs == 3
+        assert s.median == pytest.approx(9.20)
+        assert s.spread_pct == pytest.approx(29.46, abs=0.1)
+        assert not s.stable  # 15% CV is too wide to compare engines across
+
+    def test_a_tight_measurement_is_stable(self) -> None:
+        from gbench.report.variance import Spread
+
+        assert Spread("memgraph", "ingest", [2664.0, 2686.0, 2660.0]).stable
+
+    def test_single_run_is_never_called_stable(self) -> None:
+        """One observation has no spread to report, and claiming otherwise
+        would present an unmeasured quantity as measured."""
+        from gbench.report.variance import Spread
+
+        s = Spread("memgraph", "hop3", [9.09])
+        assert s.runs == 1
+        assert not s.stable
+        assert s.cv == 0.0

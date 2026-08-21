@@ -476,6 +476,43 @@ def generate(raw_dir: Path, out_dir: Path) -> Path:
     for workload_id in WORKLOAD_ORDER:
         sections += [f"\n### {WORKLOAD_LABEL[workload_id]}\n", table_latency(records, workload_id)]
 
+    from gbench.report import variance as var
+
+    stats = var.summarise(raw_dir)
+    variance_section: list[str] = []
+    if stats["run_count"] >= 2:
+        unstable = stats["unstable"]
+        variance_section = [
+            "\n## Run-to-run variance\n",
+            f"_The full suite was executed **{stats['run_count']} times**. "
+            "The 1,000 iterations within each run give a confidence interval on "
+            "each percentile; they say nothing about variation *between* runs, "
+            "which has larger sources -- multi-tenant free tiers, differing cache "
+            "states at container start, burstable CPU credit, and host thermal "
+            "state. A difference between two engines smaller than either one's own "
+            "spread is not a difference._\n",
+            f"Median coefficient of variation across "
+            f"{stats['repeated']} repeated measurements: **{stats['median_cv']:.3f}**. "
+            f"Measurements marked ⚠ exceed a coefficient of variation of "
+            f"{var.UNSTABLE_CV:.2f} and should not be compared across engines "
+            f"without accounting for the spread.\n",
+        ]
+        if unstable:
+            variance_section += [
+                f"\n### Least stable measurements ({len(unstable)})\n",
+                "_Listed first because these are the numbers a reader is most "
+                "likely to over-interpret._\n",
+                var.table(unstable[:15]),
+            ]
+        variance_section += [
+            "\n### Latency, across runs\n",
+            var.table(stats["spreads"], metric_filter="p50 ms"),
+            "\n### Ingest, across runs\n",
+            var.table(stats["spreads"], metric_filter="ingest"),
+            "\n### Throughput, across runs\n",
+            var.table(stats["spreads"], metric_filter="q/s"),
+        ]
+
     sections += [
         "\n## Mixed workload -- sustained throughput\n",
         table_concurrency(records),
@@ -488,6 +525,7 @@ def generate(raw_dir: Path, out_dir: Path) -> Path:
         table_footprint(records),
         "\n## Failures and did-not-finish\n",
         table_dnf(records),
+        *variance_section,
     ]
 
     captions = {
